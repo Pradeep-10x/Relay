@@ -6,7 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
+model user {
   id            String         @id @default(uuid())
   email         String         @unique
   passwordHash  String
@@ -15,14 +15,14 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   deletedAt     DateTime?
-  refreshTokens RefreshToken[]
+  refreshTokens refreshToken[]
 }
 
-model RefreshToken {
+model refreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
   revoked   Boolean  @default(false)
