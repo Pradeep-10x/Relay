@@ -62,8 +62,9 @@ export async function logout(req: Request, res: Response) {
    if(!rT){
     return res.status(400).json({ message: "No refresh token provided" });
    }
+   
     await prisma.refreshToken.updateMany({
-      where: { userId: (req as any).user.id },
+      where: { token: rT },
       data: { revoked: true },
     });
      
