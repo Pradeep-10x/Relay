@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
-import ApiError from "../../utils/ApiError.js";
+import { ApiError } from "../../utils/ApiError.js";
 import { addDays } from "date-fns";
 import { comparePassword, hashPassword } from "../../utils/hash.js";
 import {
@@ -19,7 +19,7 @@ export const registerUser= async(data: {
     });
 
     if (existing) {
-      throw new ApiError("Email already registered", 409);
+      throw new ApiError(400, "Email already in use");
     }
 
     const passwordHash = await hashPassword(data.password);
@@ -59,7 +59,7 @@ export const loginUser = async(data: {
   });
 
   if (!user) {
-    throw new ApiError("Invalid credentials", 401);
+    throw new ApiError(401, "Invalid credentials");
   }
 
   const valid = await comparePassword(
@@ -68,7 +68,7 @@ export const loginUser = async(data: {
   );
 
   if (!valid) {
-    throw new ApiError("Invalid credentials", 401);
+    throw new ApiError(401, "Invalid credentials");
   }
 
   const accessToken = generateAccessToken(user.id);

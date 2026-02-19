@@ -6,7 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 
-model user {
+model User {
   id            String         @id @default(uuid())
   email         String         @unique
   passwordHash  String
@@ -15,17 +15,48 @@ model user {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   deletedAt     DateTime?
-  refreshTokens refreshToken[]
+  refreshTokens RefreshToken[]
+  memberships WorkspaceMember[]
+
 }
 
-model refreshToken {
+model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
   revoked   Boolean  @default(false)
 
   @@index([userId])
+}
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(uuid())
+  userId      String
+  workspaceId String
+  role        WorkspaceRole
+  createdAt   DateTime @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
 }
