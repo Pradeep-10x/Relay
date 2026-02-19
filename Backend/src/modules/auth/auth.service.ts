@@ -74,14 +74,48 @@ export const loginUser = async(data: {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
-  // await prisma.refreshToken.create({
-  //   data: {
-  //     token: refreshToken,
-  //     userId: user.id,
-  //     expiresAt: addDays(new Date(), 7),
-  //   },
-  // });
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt: addDays(new Date(), 7),
+    },
+  });
 
   return { accessToken, refreshToken };
 }
 
+export const refreshTokens = async(oldToken: string) => {
+  const payload = verifyRefreshToken(oldToken) as { sub: string };
+
+  const stored = await prisma.refreshToken.findUnique({
+    where: { token: oldToken },
+  });
+
+  if (!stored || stored.revoked) {
+    throw new Error("Invalid refresh token");
+  }
+
+  // revoking old token
+  await prisma.refreshToken.update({
+    where: { id: stored.id },
+    data: { revoked: true },
+  });
+
+  const newAccessToken = generateAccessToken(payload.sub);
+  const newRefreshToken = generateRefreshToken(payload.sub);
+
+  //storing new token
+  await prisma.refreshToken.create({
+    data: {
+      token: newRefreshToken,
+      userId: payload.sub,
+      expiresAt: addDays(new Date(), 7),
+    },
+  });
+
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  };
+}

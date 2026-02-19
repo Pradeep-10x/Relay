@@ -1,34 +1,52 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyAccessToken } from "../utils/jwt.js";
 import { prisma } from "../lib/prisma.js";
+import { verifyAccessToken } from "../utils/jwt.js";
 
-export async function authMiddleware(
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-) {
-  const header = req.headers.authorization || req.cookies;
-
-  if (!header || !header.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const token = header.split(" ")[1];
-
+) => {
   try {
-    const payload =  await verifyAccessToken(token) as { sub: string };
+    const authHeader = req.headers.authorization; 
 
-    const user = await prisma.user.findUnique({
-      where: { id: payload.sub },
-    });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No authorization header or invalid format" });
+    }
 
-    if (!user) {
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    (req as any).user = user;
+    const payload = verifyAccessToken(token) as { sub: string };
+
+    if (!payload?.sub) {
+      return res.status(401).json({ message: "Unauthorized payload" });
+    }
+     
+    //Fetching user from db
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        name: true,
+        id: true,
+        email: true,
+        deletedAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    
+    (req as any).user =  user;
+
     next();
-  } catch {
-    return res.status(401).json({ message: "Unauthorized" });
+  } catch (error) {
+    return res.status(401).json({ message: error });
   }
 }
+    
