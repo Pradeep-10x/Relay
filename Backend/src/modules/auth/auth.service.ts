@@ -1,9 +1,11 @@
 import { prisma } from "../../lib/prisma.js";
 import ApiError from "../../utils/ApiError.js";
+import { addDays } from "date-fns";
 import { comparePassword, hashPassword } from "../../utils/hash.js";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
 } from "../../utils/jwt.js";
 
 export const registerUser= async(data: {
@@ -11,8 +13,8 @@ export const registerUser= async(data: {
   password: string;
   name?: string;
 }) =>{
-  return prisma.$transaction(async (tx) => {
-    const existing = await tx.user.findUnique({
+ 
+    const existing = await prisma.user.findUnique({
       where: { email: data.email },
     });
 
@@ -22,7 +24,7 @@ export const registerUser= async(data: {
 
     const passwordHash = await hashPassword(data.password);
 
-    const user = await tx.user.create({
+    const user = await prisma.user.create({
       data: {
         email: data.email,
         passwordHash,
@@ -33,7 +35,7 @@ export const registerUser= async(data: {
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
 
-    await tx.refreshToken.create({
+    await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         userId: user.id,
@@ -42,7 +44,40 @@ export const registerUser= async(data: {
     });
 
     return { accessToken, refreshToken };
-  });
-}
+  }
 
+export const loginUser = async(data: {
+  email: string;
+  password: string;
+}) => {
+  const user = await prisma.user.findUnique({
+    where: { email: data.email },
+  });
+
+  if (!user) {
+    throw new ApiError("Invalid credentials", 401);
+  }
+
+  const valid = await comparePassword(
+    data.password,
+    user.passwordHash
+  );
+
+  if (!valid) {
+    throw new ApiError("Invalid credentials", 401);
+  }
+
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken(user.id);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt: addDays(new Date(), 7),
+    },
+  });
+
+  return { accessToken, refreshToken };
+}
 
