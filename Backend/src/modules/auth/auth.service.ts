@@ -13,7 +13,7 @@ export const registerUser= async(data: {
   password: string;
   name?: string;
 }) =>{
- 
+   
     const existing = await prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -23,7 +23,7 @@ export const registerUser= async(data: {
     }
 
     const passwordHash = await hashPassword(data.password);
-
+     
     const user = await prisma.user.create({
       data: {
         email: data.email,
@@ -31,6 +31,9 @@ export const registerUser= async(data: {
         name: data.name as string,
       },
     });
+
+
+     
 
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
@@ -44,6 +47,7 @@ export const registerUser= async(data: {
     });
 
     return { accessToken, refreshToken };
+
   }
 
 export const loginUser = async(data: {
@@ -70,13 +74,13 @@ export const loginUser = async(data: {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
-  await prisma.refreshToken.create({
-    data: {
-      token: refreshToken,
-      userId: user.id,
-      expiresAt: addDays(new Date(), 7),
-    },
-  });
+  // await prisma.refreshToken.create({
+  //   data: {
+  //     token: refreshToken,
+  //     userId: user.id,
+  //     expiresAt: addDays(new Date(), 7),
+  //   },
+  // });
 
   return { accessToken, refreshToken };
 }

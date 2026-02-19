@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 
-const generateAccessToken= async(userId: string)=> {
+const generateAccessToken= (userId: string)=> {
   return jwt.sign(
     { sub: userId },
     env.JWT_ACCESS_SECRET,
@@ -17,11 +17,11 @@ const generateRefreshToken = (userId: string) => {
   );
 };
 
-const  verifyAccessToken = async (token: string) => {
+const  verifyAccessToken =  (token: string) => {
   return jwt.verify(token, env.JWT_ACCESS_SECRET);
 }
 
-const verifyRefreshToken=async(token: string) =>{
+const verifyRefreshToken= (token: string) =>{
   return jwt.verify(token, env.JWT_REFRESH_SECRET);
 }
 

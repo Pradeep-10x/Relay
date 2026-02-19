@@ -10,11 +10,27 @@ import { registerSchema, loginSchema } from "./auth.schema.js";
 export async function register(req: Request, res: Response) {
   const parsed = registerSchema.parse(req.body);
   const {accessToken, refreshToken} = await registerUser(parsed);
-  res.status(201).json({accessToken, refreshToken});
+  res
+    .cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+    .status(201)
+    .json({ message : "User registered successfully", accessToken });
 }
 
 export async function login(req: Request, res: Response) {
   const parsed = loginSchema.parse(req.body);
   const tokens = await loginUser(parsed);
-  res.json(tokens);
+  res
+    .cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+    .status(200)
+    .json({ message: "User logged in successfully", accessToken: tokens.accessToken });
 }
