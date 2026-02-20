@@ -23,3 +23,18 @@ export const createWorkspaceService = async (userId: string, name: string) => {
     return workspace
 });
 };
+
+export const getUserWorkspacesService = async (userId: string) => {
+    return await prisma.workspace.findMany({
+        where: {
+            members: {
+                some: {
+                    userId,
+                }
+            }
+        },
+        include: {
+            members: true,
+        }
+    });
+};
