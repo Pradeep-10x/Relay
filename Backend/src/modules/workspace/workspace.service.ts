@@ -105,4 +105,57 @@ export const addMembersToWorkspaceService = async (workspaceId: string, userId: 
 })};
 
 export const getWorkspaceMembersService = async (workspaceId: string , userId: string) => {
+    const membership = await prisma.workspaceMember.findUnique({
+        where: {
+            userId_workspaceId: {
+                userId,
+                workspaceId,
+            },
+        },
+    });
+
+    if(!membership)
+    {
+        throw new ApiError(403, "You are not a member of this workspace");
+    }
+
+    return await prisma.workspaceMember.findMany({
+        where: {
+            workspaceId,
+        },
+        include: {
+            user: true,
+        }
+    });
+}
     
+export const deleteWorkspaceService = async (workspaceId: string, userId: string) => {
+    const membership = await prisma.workspaceMember.findUnique({
+        where: {
+            userId_workspaceId: {
+                userId,
+                workspaceId,
+            },
+        },
+    });
+
+    if(!membership)
+    {
+        throw new ApiError(403, "You are not a member of this workspace");
+    }
+
+    if(membership.role !== WorkspaceRole.OWNER)
+    {
+        throw new ApiError(403, "Only workspace owners can delete the workspace");
+    }
+     return prisma.$transaction(async(tx)=> {
+     const workspace =  await tx.workspace.delete({
+        where: {
+            id: workspaceId,
+        },
+    });
+
+     return { success: true, workspace };
+}
+     )
+};

@@ -2,7 +2,7 @@ import {Request , Response} from "express";
 import { asyncHandler
  } from "../../utils/AsyncHandler.js";
  import { ApiError } from "../../utils/ApiError.js";
- import { createWorkspaceService , getUserWorkspacesService ,addMembersToWorkspaceService ,getWorkspaceMembersService} from "./workspace.service.js";
+ import { createWorkspaceService , getUserWorkspacesService ,addMembersToWorkspaceService ,getWorkspaceMembersService , deleteWorkspaceService} from "./workspace.service.js";
 import { workspaceSchema , addMemberSchema , getMembersSchema } from "./workspace.schema.js";
 
 
@@ -37,4 +37,12 @@ export const getWorkspaceMembers = asyncHandler(async (req: Request, res: Respon
     const parsed = getMembersSchema.parse({ workspaceId });
     const members = await getWorkspaceMembersService(parsed.workspaceId, user.id);
     res.status(200).json({ members });
+});
+
+export const deleteWorkspace = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const { workspaceId } = req.params;
+    const parsed = getMembersSchema.parse({ workspaceId });
+    const deleteWorkspace = await deleteWorkspaceService(parsed.workspaceId, user.id);
+    res.status(200).json({ message: "Workspace deleted successfully", deleteWorkspace });
 });
