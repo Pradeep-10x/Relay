@@ -104,3 +104,5 @@ export const addMembersToWorkspaceService = async (workspaceId: string, userId: 
   };
 })};
 
+export const getWorkspaceMembersService = async (workspaceId: string , userId: string) => {
+    

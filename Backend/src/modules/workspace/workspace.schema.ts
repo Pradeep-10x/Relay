@@ -8,3 +8,7 @@ export const addMemberSchema = z.object({
   email: z.string().email("Invalid email address"),
   role: z.enum(["OWNER", "ADMIN", "MEMBER"], "Invalid role"),
 });
+
+export const getMembersSchema = z.object({
+  workspaceId: z.string(),
+});
