@@ -2,8 +2,8 @@ import {Request , Response} from "express";
 import { asyncHandler
  } from "../../utils/AsyncHandler.js";
  import { ApiError } from "../../utils/ApiError.js";
- import { createWorkspaceService , getUserWorkspacesService } from "./workspace.service.js";
-import { workspaceSchema } from "./workspace.schema.js";
+ import { createWorkspaceService , getUserWorkspacesService ,addMembersToWorkspaceService } from "./workspace.service.js";
+import { workspaceSchema , addMemberSchema } from "./workspace.schema.js";
 
 
 export const createWorkspace = asyncHandler(async (req: Request, res: Response) => {
@@ -21,3 +21,11 @@ export const getWorkspaces = asyncHandler(async (req: Request, res: Response) =>
     const workspaces = await getUserWorkspacesService(user.id);
     res.status(200).json({ workspaces })
 });
+
+export const addMemberToWorkspace = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const { workspaceId } = req.params;
+    const parsed = addMemberSchema.parse(req.body);
+    const workspace = await addMembersToWorkspaceService(workspaceId as string, user.id, parsed.role, parsed.email);
+    res.status(200).json({ message: "Member added successfully", workspace });
+}
