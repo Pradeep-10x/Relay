@@ -69,6 +69,9 @@ export const addMembersToWorkspaceService = async (workspaceId: string, userId: 
     if (!user) {
       throw new ApiError(404, "User not found");
     }
+    if (user.id === userId) {
+  throw new ApiError(400, "You are already part of this workspace");
+}
 
     const existing = await tx.workspaceMember.findUnique({
       where: {
@@ -83,17 +86,23 @@ export const addMembersToWorkspaceService = async (workspaceId: string, userId: 
       throw new ApiError(400, "User already in workspace");
     }
     
-    if(role === WorkspaceRole.OWNER){
-      const ownerCount = await tx.workspaceMember.count({
-        where: {
-          workspaceId,
-          role: WorkspaceRole.OWNER,
-        },
-      });
+    if (
+      membership.role === WorkspaceRole.ADMIN &&
+      role !== WorkspaceRole.MEMBER
+    ) {
+      throw new ApiError(403, "Admin can only assign MEMBER role");
+    }
 
-      if (ownerCount >= 1) {
-        throw new ApiError(400, "Workspace can only have one owner");
-      }
+    if (role === WorkspaceRole.OWNER) {
+      throw new ApiError(400, "Cannot assign OWNER role");
+    }
+
+    if (!Object.values(WorkspaceRole).includes(role)) {
+  throw new ApiError(400, "Invalid role");
+}
+
+
+    
     return tx.workspaceMember.create({
       data: {
         userId: user.id,
@@ -101,8 +110,8 @@ export const addMembersToWorkspaceService = async (workspaceId: string, userId: 
         role ,
       },
     });
-  };
-})};
+  });
+}
 
 export const getWorkspaceMembersService = async (workspaceId: string , userId: string) => {
     const membership = await prisma.workspaceMember.findUnique({

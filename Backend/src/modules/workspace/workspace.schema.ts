@@ -5,7 +5,7 @@ export const workspaceSchema = z.object({
 });
 
 export const addMemberSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email("Invalid email address").toLowerCase(),
   role: z.enum(["OWNER", "ADMIN", "MEMBER"], "Invalid role"),
 });
 
