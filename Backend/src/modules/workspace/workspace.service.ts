@@ -97,10 +97,7 @@ export const addMembersToWorkspaceService = async (workspaceId: string, userId: 
       throw new ApiError(400, "Cannot assign OWNER role");
     }
 
-    if (!Object.values(WorkspaceRole).includes(role)) {
-  throw new ApiError(400, "Invalid role");
-}
-
+ 
 
     
     return tx.workspaceMember.create({
@@ -132,14 +129,25 @@ export const getWorkspaceMembersService = async (workspaceId: string , userId: s
         where: {
             workspaceId,
         },
-        include: {
-            user: true,
-        }
+       include: {
+  user: {
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      avatar: true,
+    },
+  },
+}
+
     });
 }
     
 export const deleteWorkspaceService = async (workspaceId: string, userId: string) => {
-    const membership = await prisma.workspaceMember.findUnique({
+   
+     return prisma.$transaction(async(tx)=> {
+
+       const membership = await prisma.workspaceMember.findUnique({
         where: {
             userId_workspaceId: {
                 userId,
@@ -157,7 +165,6 @@ export const deleteWorkspaceService = async (workspaceId: string, userId: string
     {
         throw new ApiError(403, "Only workspace owners can delete the workspace");
     }
-     return prisma.$transaction(async(tx)=> {
      const workspace =  await tx.workspace.delete({
         where: {
             id: workspaceId,
@@ -169,32 +176,72 @@ export const deleteWorkspaceService = async (workspaceId: string, userId: string
      )
 };
 
-export const deleteWorkspaceMemberService = async (workspaceId: string, userId: string , targetUserId: string) => {
-    const membership = await prisma.workspaceMember.findUnique({
-        where: {
-            userId_workspaceId: {
-                userId,
-                workspaceId,
-            },
+export const deleteWorkspaceMemberService = async (
+  workspaceId: string,
+  userId: string,
+  targetUserId: string
+) => {
+  return prisma.$transaction(async (tx) => {
+    const requester = await tx.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId: userId,
+          workspaceId,
         },
+      },
     });
 
-    if(!membership)
-    {
-        throw new ApiError(403, "You are not a member of this workspace");
+    if (!requester) {
+      throw new ApiError(403, "Not a member");
     }
 
-    if(membership.role !== WorkspaceRole.OWNER && membership.role !== WorkspaceRole.ADMIN)
-    {
-        throw new ApiError(403, "Only workspace owners and admins can remove members");
+    if (requester.role === WorkspaceRole.MEMBER) {
+      throw new ApiError(403, "Members cannot remove other members");
+    }
+    if (
+      requester.role !== WorkspaceRole.OWNER &&
+      requester.role !== WorkspaceRole.ADMIN
+    ) {
+      throw new ApiError(403, "Insufficient permissions");
     }
 
-     return prisma.workspaceMember.delete({
-        where: {
-            userId_workspaceId: {
-                userId: targetUserId,
-                workspaceId,
-            },
+    const target = await tx.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId: targetUserId,
+          workspaceId,
         },
+      },
     });
-}
+
+    if (!target) {
+      throw new ApiError(404, "Member to be deleted not found");
+    }
+
+    
+    if (target.role === WorkspaceRole.OWNER) {
+      const ownerCount = await tx.workspaceMember.count({
+        where: {
+          workspaceId,
+          role: WorkspaceRole.OWNER,
+        },
+      });
+
+      if (ownerCount <= 1) {
+        throw new ApiError(
+          400,
+          "Workspace must have at least one owner"
+        );
+      }
+    }
+
+    return tx.workspaceMember.delete({
+      where: {
+        userId_workspaceId: {
+          userId: targetUserId,
+          workspaceId,
+        },
+      },
+    });
+  });
+};
