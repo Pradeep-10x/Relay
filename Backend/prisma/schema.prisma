@@ -17,7 +17,7 @@ model User {
   deletedAt     DateTime?
   refreshTokens RefreshToken[]
   memberships WorkspaceMember[]
-
+  projectsMemberships ProjectMember[]
 }
 
 model RefreshToken {
@@ -37,7 +37,7 @@ model Workspace {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  projects   Project[]
   members   WorkspaceMember[]
 }
 
@@ -56,6 +56,33 @@ model WorkspaceMember {
 }
 
 enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Project {
+  id  String @id @default(uuid())
+  name String
+  workspaceId String
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade) 
+  members ProjectMember[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProjectMember {
+  userId    String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      ProjectRole
+  joinedAt DateTime @default(now())
+
+ @@id([userId, projectId])
+}
+
+enum ProjectRole {
   OWNER
   ADMIN
   MEMBER
