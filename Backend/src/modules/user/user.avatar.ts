@@ -5,6 +5,9 @@ import {getSignedUrl,} from "@aws-sdk/s3-request-presigner";
 import { PutObjectCommand , GetObjectCommand } from "@aws-sdk/client-s3";
 import { ApiError } from "../../utils/ApiError.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // Generating Avatar URl Upload Service for frontend to upload
 
@@ -13,12 +16,12 @@ const generateAvatarUploadUrlService = async (userId: string) => {
 const key = `avatars/${userId}/${Date.now()}.png`;
 
 const command = new PutObjectCommand({
-  Bucket: process.env.R2_BUCKET_NAME!,
+  Bucket: process.env.R2_BUCKET_NAME,
   Key: key,
   ContentType: "image/png", 
 });
 
-const uploadUrl = await getSignedUrl(r2, command, { expiresIn: 120 });
+const uploadUrl = await getSignedUrl(r2, command, { expiresIn: 120, signingRegion: "auto", });
 
 return { uploadUrl, key };
 }
@@ -38,7 +41,7 @@ const getAvatarUrlService = async (key: string) => {
         Key: key,
     });
 
-    return await getSignedUrl(r2, command, { expiresIn: 300 });
+    return await getSignedUrl(r2, command, { expiresIn: 300, signingRegion: "auto", });
 }
 
 //CONTROLLERS //
@@ -89,5 +92,5 @@ export const getCurrentUserProfile = asyncHandler(async (req: Request, res: Resp
     if (user.avatar) {
         avatarUrl = await getAvatarUrlService(user.avatar);
     }
-    res.json({ user: { id: user.id, email: user.email, name: user.name, avatarUrl } }); 
+    res.json({ user: { id: user.id, email: user.email, name: user.name, avatar : avatarUrl } }); 
 }    );
