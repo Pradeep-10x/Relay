@@ -2,7 +2,7 @@ import { success } from "zod";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ProjectRole } from "@prisma/client";
-
+import { generateBaseKey } from "../../utils/generateKey.js";
 export const createProjectService= async (userId: string, workspaceId: string, name: string) => {
 
     return prisma.$transaction(async (tx) => {
@@ -21,10 +21,23 @@ export const createProjectService= async (userId: string, workspaceId: string, n
        if (workspaceMembership.role !== "OWNER" && workspaceMembership.role !== "ADMIN") {
         throw new ApiError(403, "Only owners and admins can create projects in workspace");
       }
-
+      const baseKey = generateBaseKey(name);
+      let key = baseKey;
+      let counter = 1;
+      while(true)
+      {        const existingProject = await tx.project.findUnique({
+          where: { key },
+        });
+        if (!existingProject) {
+          break;
+        }
+        key = `${baseKey}${counter}`;
+        counter++;
+      }
       const project = await tx.project.create({
         data: {
           name,
+          key,
           workspaceId,
         },
       });

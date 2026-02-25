@@ -64,6 +64,7 @@ enum WorkspaceRole {
 model Project {
   id  String @id @default(uuid())
   name String
+  key String @unique
   workspaceId String
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade) 
   members ProjectMember[]
