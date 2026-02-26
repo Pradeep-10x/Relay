@@ -127,6 +127,7 @@ model WorkflowState {
   id        String   @id @default(uuid())
   name      String
   projectId String
+  order    Int
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   issues    Issue[]
   StateTransitionsFrom WorkflowTransition[] @relation("FromState")
