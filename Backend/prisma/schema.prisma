@@ -72,6 +72,9 @@ model Project {
   members ProjectMember[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Issues Issue[]
+  WorkflowStates WorkflowState[]
+  StateTransitions WorkflowTransition[]
 }
 
 model ProjectMember {
@@ -118,3 +121,28 @@ model Issue {
    @@index([assigneeId])
 }
 
+model WorkflowState {
+  id        String   @id @default(uuid())
+  name      String
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues    Issue[]
+  StateTransitionsFrom WorkflowTransition[] @relation("FromState")
+  StateTransitionsTo WorkflowTransition[] @relation("ToState") 
+  @@index([projectId])
+  @@unique([name, projectId])
+}
+
+model WorkflowTransition {
+  id        String   @id @default(uuid())
+  name      String
+  projectId String
+  fromStateId String
+  toStateId String
+  allowedRoles ProjectRole
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fromState WorkflowState @relation("FromState", fields: [fromStateId], references: [id])
+  toState WorkflowState @relation("ToState", fields: [toStateId], references: [id])
+
+  @@index([projectId])
+}
