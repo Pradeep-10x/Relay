@@ -50,6 +50,66 @@ export const createProjectService= async (userId: string, workspaceId: string, n
         },
       });
 
+       await tx.workflowState.createMany({
+        data: [
+          {
+            name: "OPEN",
+            projectId: project.id,
+            order: 1,
+          },
+          {
+            name: "In_Progress",
+            projectId: project.id,
+            order: 2,
+          },
+          {
+            name: "Review",
+            projectId: project.id,
+            order: 3,
+          },
+          {
+            name: "Done",
+            projectId: project.id,
+            order: 4,
+          },
+        ],
+      });
+
+      const state = await tx.workflowState.findMany({
+        where: { projectId: project.id },
+      });
+
+      const stateMap = Object.fromEntries(state.map((s) => [s.name, s.id]));
+      
+      await tx.workflowTransition.createMany({
+        data: [
+          {
+            projectId: project.id,
+            fromStateId: stateMap.OPEN as string,
+            toStateId: stateMap.In_Progress as string,
+            allowedRoles : "MEMBER"
+          },
+          {
+            projectId: project.id,
+            fromStateId: stateMap.In_Progress as string,
+            toStateId: stateMap.Review as string,
+            allowedRoles : "MEMBER"
+          },
+          {
+            projectId: project.id,
+            fromStateId: stateMap.Review as string,
+            toStateId: stateMap.Done as string,
+            allowedRoles : "ADMIN"
+          },
+          {
+            projectId: project.id,
+            fromStateId: stateMap.Done as string,
+            toStateId: stateMap.In_Progress as string,
+            allowedRoles : "ADMIN"
+          },
+        ],
+      });
+
       return project;
     });
 }

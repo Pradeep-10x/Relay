@@ -138,7 +138,6 @@ model WorkflowState {
 
 model WorkflowTransition {
   id        String   @id @default(uuid())
-  name      String
   projectId String
   fromStateId String
   toStateId String
