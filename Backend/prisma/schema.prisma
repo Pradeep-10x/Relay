@@ -18,6 +18,8 @@ model User {
   refreshTokens RefreshToken[]
   memberships WorkspaceMember[]
   projectsMemberships ProjectMember[]
+  IssuesReported Issue[] @relation("IssueReporter")
+  IssuesAssigned Issue[] @relation("IssueAssignee")
 }
 
 model RefreshToken {
@@ -88,3 +90,31 @@ enum ProjectRole {
   ADMIN
   MEMBER
 }
+
+enum IssuePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Issue {
+  id         String   @id @default(uuid())
+  title       String
+  description String?
+  priority    IssuePriority 
+  projectId   String
+  reporterId  String
+  assigneeId  String? 
+  stateid    String
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reporter    User    @relation("IssueReporter", fields: [reporterId], references: [id])
+  assignee    User?   @relation("IssueAssignee", fields: [assigneeId], references: [id])
+  state      WorkflowState @relation(fields: [stateid], references: [id])
+
+   @@index([projectId])
+   @@index([assigneeId])
+}
+
