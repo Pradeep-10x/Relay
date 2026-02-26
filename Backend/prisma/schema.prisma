@@ -106,6 +106,7 @@ model Issue {
   title       String
   description String?
   priority    IssuePriority 
+  version     Int      @default(1)
   projectId   String
   reporterId  String
   assigneeId  String? 
