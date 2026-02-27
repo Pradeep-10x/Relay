@@ -77,3 +77,26 @@ export const createIssueService = async (
     return issue;
   });
 };
+
+export const selfAssignIssueService = async (
+  issueId: string,
+  userId: string
+) => {
+
+  const result = await prisma.issue.updateMany({
+    where: {
+      id: issueId,
+      assigneeId: null,
+    },
+    data: {
+      assigneeId: userId,
+      version: { increment: 1 },
+    },
+  });
+
+  if (result.count === 0) {
+    throw new ApiError(409, "Issue already assigned");
+  }
+
+  return { success: true };
+};
