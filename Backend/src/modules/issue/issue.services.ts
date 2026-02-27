@@ -107,10 +107,14 @@ export const updateIssueStateService = async (
   targetStateId: string
 ) => {
   return prisma.$transaction(async (tx) => {
-
-   
     const issue = await tx.issue.findUnique({
       where: { id: issueId },
+      select: {
+        id: true,
+        projectId: true,
+        stateId: true,
+        version: true,
+      },
     });
 
     if (!issue) {
@@ -124,6 +128,7 @@ export const updateIssueStateService = async (
           projectId: issue.projectId,
         },
       },
+      select: { role: true },
     });
 
     if (!membership) {
@@ -140,6 +145,7 @@ export const updateIssueStateService = async (
         fromStateId: issue.stateId,
         toStateId: targetStateId,
       },
+      select: { allowedRoles: true },
     });
 
     if (!transition) {
@@ -148,23 +154,72 @@ export const updateIssueStateService = async (
 
     if (
       !transition.allowedRoles.includes(membership.role) &&
-      membership.role !== "OWNER" 
+      membership.role !== "OWNER"
     ) {
       throw new ApiError(403, "You are not allowed to perform this transition");
     }
-    
-  
-    const updated = await tx.issue.update({
-      where: {
-        id: issue.id,
-        version: issue.version,
-      },
-      data: {
-        stateId: targetStateId,
-        version: { increment: 1 },
-      },
+
+    const targetState = await tx.workflowState.findUnique({
+      where: { id: targetStateId },
+      select: { name: true },
     });
 
-    return updated;
+    if (!targetState) {
+      throw new ApiError(404, "Target state not found");
+    }
+
+  
+
+const doneState = await tx.workflowState.findFirst({
+  where: {
+    projectId: issue.projectId,
+    name: "DONE",
+  },
+  select: { id: true },
+});
+
+if (!doneState) {
+  throw new ApiError(500, "DONE state not configured");
+}
+
+const unresolvedBlockers = await tx.issueDependency.findFirst({
+  where: {
+    blockedId: issue.id, 
+    blocker: {
+      stateId: {
+        not: doneState.id,
+      },
+    },
+  },
+});
+
+if (unresolvedBlockers) {
+  throw new ApiError(
+    400,
+    "Cannot move to DONE while blockers are unresolved"
+  );
+}
+
+    
+    try {
+      const updated = await tx.issue.update({
+        where: {
+          id: issue.id,
+          version: issue.version,
+        },
+        data: {
+          stateId: targetStateId,
+          version: { increment: 1 },
+        },
+      });
+
+      return updated;
+    } catch (error) {
+      // version mismatch = concurrent update
+      throw new ApiError(
+        409,
+        "Issue was updated by someone else. Please refresh and try again."
+      );
+    }
   });
 };
