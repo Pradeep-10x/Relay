@@ -100,3 +100,70 @@ export const selfAssignIssueService = async (
 
   return { success: true };
 };
+
+export const updateIssueStateService = async (
+  issueId: string,
+  userId: string,
+  targetStateId: string
+) => {
+  return prisma.$transaction(async (tx) => {
+
+   
+    const issue = await tx.issue.findUnique({
+      where: { id: issueId },
+    });
+
+    if (!issue) {
+      throw new ApiError(404, "Issue not found");
+    }
+
+    const membership = await tx.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId,
+          projectId: issue.projectId,
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new ApiError(403, "Not a project member");
+    }
+
+    if (issue.stateId === targetStateId) {
+      throw new ApiError(400, "Issue already in this state");
+    }
+
+    const transition = await tx.workflowTransition.findFirst({
+      where: {
+        projectId: issue.projectId,
+        fromStateId: issue.stateId,
+        toStateId: targetStateId,
+      },
+    });
+
+    if (!transition) {
+      throw new ApiError(400, "Invalid state transition");
+    }
+
+    if (
+      !transition.allowedRoles.includes(membership.role) &&
+      membership.role !== "OWNER" 
+    ) {
+      throw new ApiError(403, "You are not allowed to perform this transition");
+    }
+
+    const updated = await tx.issue.update({
+      where: {
+        id: issue.id,
+        version: issue.version,
+      },
+      data: {
+        stateId: targetStateId,
+        version: { increment: 1 },
+      },
+    });
+
+    return updated;
+  });
+};
