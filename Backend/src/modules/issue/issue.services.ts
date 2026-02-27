@@ -152,7 +152,8 @@ export const updateIssueStateService = async (
     ) {
       throw new ApiError(403, "You are not allowed to perform this transition");
     }
-
+    
+  
     const updated = await tx.issue.update({
       where: {
         id: issue.id,

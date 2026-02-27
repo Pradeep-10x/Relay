@@ -119,7 +119,8 @@ model Issue {
   reporter    User    @relation("IssueReporter", fields: [reporterId], references: [id])
   assignee    User?   @relation("IssueAssignee", fields: [assigneeId], references: [id])
   state      WorkflowState @relation(fields: [stateId], references: [id])
-
+  blocking IssueDependency[] @relation("Blocker")
+  blockedBy IssueDependency[] @relation("Blocked")
    @@index([projectId])
    @@index([assigneeId])
 }
@@ -148,4 +149,14 @@ model WorkflowTransition {
   toState WorkflowState @relation("ToState", fields: [toStateId], references: [id])
 
   @@index([projectId])
+}
+
+model IssueDependency {
+  id String @id @default(uuid())
+  blockerId String
+  blockedId String
+  blocker Issue @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked Issue @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
 }
