@@ -20,7 +20,7 @@ export const createProject = async (req: Request, res: Response) => {
     workspaceId as string,
     parsed.name
   );
-
+    
   res.status(201).json(project);
 };
 

@@ -213,6 +213,16 @@ if (unresolvedBlockers) {
         },
       });
 
+      await tx.issueActiviy.create({
+        data: {
+          issueId: issue.id,
+          userId,
+          field: "state",
+           fromValue: issue.stateId,
+             toValue: targetStateId,
+        },
+      });
+
       return updated;
     } catch (error) {
       // version mismatch = concurrent update
