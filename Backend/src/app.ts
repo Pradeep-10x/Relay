@@ -17,6 +17,6 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/workspace", workspaceRoutes);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/project", projectRoutes);
-app.use("/api/v1/issues", issueRoutes);
+app.use("/api/v1", issueRoutes);
 
 export default app;

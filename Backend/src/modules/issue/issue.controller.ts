@@ -6,6 +6,7 @@ import {
   addIssueDependencyService,
   removeIssueDependencyService,
   getIssueActivityService,
+  updateIssueService
 } from "./issue.services.js";
 
 export const createIssue = async (req: Request, res: Response) => {
@@ -24,6 +25,8 @@ export const createIssue = async (req: Request, res: Response) => {
   res.status(201).json(issue);
 };
 
+
+
 export const selfAssignIssue = async (req: Request, res: Response) => {
   const { issueId } = req.params;
 
@@ -34,6 +37,7 @@ export const selfAssignIssue = async (req: Request, res: Response) => {
 
   res.json(result);
 };
+
 
 export const updateIssueState = async (req: Request, res: Response) => {
   const { issueId } = req.params;
@@ -48,31 +52,6 @@ export const updateIssueState = async (req: Request, res: Response) => {
   res.json(issue);
 };
 
-export const updateIssue = async (req: Request, res: Response) => {
-  const { issueId } = req.params;
-  const { title, description, priority } = req.body;
-
-  const issue = await updateIssueService(
-    issueId as string,
-    (req as any).user.id,
-    { title, description, priority }
-  );
-
-  res.json(issue);
-};
-
-export const reassignIssue = async (req: Request, res: Response) => {
-  const { issueId } = req.params;
-  const { assigneeId } = req.body;
-
-  const issue = await reassignIssueService(
-    issueId as string,
-    (req as any).user.id,
-    assigneeId
-  );
-
-  res.json(issue);
-};
 
 export const addDependency = async (req: Request, res: Response) => {
   const { issueId } = req.params;
@@ -105,4 +84,22 @@ export const getIssueActivity = async (req: Request, res: Response) => {
   const activity = await getIssueActivityService(issueId as string);
 
   res.json(activity);
+};
+
+export const updateIssue = async (req: Request, res: Response) => {
+  const { issueId } = req.params;
+  const { title, description, priority, assigneeId } = req.body;
+
+   const updatedIssue = await updateIssueService(
+    issueId as string,
+    (req as any).user.id,
+    {
+    title,
+    description,
+    priority,
+    assigneeId
+    }
+   );
+
+   res.json({message : " Issue updated Successfully", isssue : updatedIssue,});
 };

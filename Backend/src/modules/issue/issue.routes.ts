@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   createIssue,
   updateIssueState,
-
+  updateIssue,
 
   addDependency,
   removeDependency,
@@ -19,28 +19,29 @@ router.post(
 );
 
 router.patch(
-  "/:issueId/state",
+  "/issues/:issueId/state",
   authMiddleware,
   updateIssueState
 );
 
+router.patch("/issues/:issueId", authMiddleware, updateIssue);
 
 
 
 router.post(
-  "/:issueId/dependencies",
+  "/issues/:issueId/dependencies",
   authMiddleware,
   addDependency
 );
 
 router.delete(
-  "/:issueId/dependencies/:blockerId",
+  "/issues/:issueId/dependencies/:blockerId",
   authMiddleware,
   removeDependency
 );
 
 router.get(
-  "/:issueId/activity",
+  "/issues/:issueId/activity",
   authMiddleware,
   getIssueActivity
 );
