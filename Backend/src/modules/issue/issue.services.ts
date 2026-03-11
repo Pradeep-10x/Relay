@@ -82,40 +82,23 @@ export const selfAssignIssueService = async (
   issueId: string,
   userId: string
 ) => {
-  return prisma.$transaction(async (tx) => {
-    const issue = await tx.issue.findUnique({
-      where: { id: issueId },
-      select: { id: true, assigneeId: true, version: true },
-    });
 
-    if (!issue) {
-      throw new ApiError(404, "Issue not found");
-    }
-
-    if (issue.assigneeId) {
-      throw new ApiError(409, "Issue already assigned");
-    }
-
-    const updated = await tx.issue.update({
-      where: { id: issue.id, version: issue.version },
+  const result = await prisma.issue.updateMany({
+    where: {
+      id: issueId,
+      assigneeId: null,
+    },
       data: {
         assigneeId: userId,
         version: { increment: 1 },
       },
     });
 
-    await tx.issueActiviy.create({
-      data: {
-        issueId: issue.id,
-        userId,
-        field: "assignee",
-        fromValue: null,
-        toValue: userId,
-      },
-    });
+  if (result.count === 0) {
+    throw new ApiError(409, "Issue already assigned");
+  }
 
-    return updated;
-  });
+  return { success: true };
 };
 
 export const updateIssueStateService = async (
@@ -230,7 +213,7 @@ if (unresolvedBlockers) {
         },
       });
 
-      await tx.issueActiviy.create({
+      await tx.issueActivity.create({
         data: {
           issueId: issue.id,
           userId,
@@ -249,175 +232,7 @@ if (unresolvedBlockers) {
       );
     }
   });
-};
-
-export const updateIssueService = async (
-  issueId: string,
-  userId: string,
-  updates: {
-    title?: string;
-    description?: string | null;
-    priority?: IssuePriority;
-  }
-) => {
-  return prisma.$transaction(async (tx) => {
-    const issue = await tx.issue.findUnique({
-      where: { id: issueId },
-      select: {
-        id: true,
-        projectId: true,
-        title: true,
-        description: true,
-        priority: true,
-        version: true,
-      },
-    });
-
-    if (!issue) {
-      throw new ApiError(404, "Issue not found");
-    }
-
-    const membership = await tx.projectMember.findUnique({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId: issue.projectId,
-        },
-      },
-    });
-
-    if (!membership) {
-      throw new ApiError(403, "Not a project member");
-    }
-
-    // Build the data object and collect audit entries
-    const data: Record<string, any> = {};
-    const auditEntries: { field: string; fromValue: string | null; toValue: string | null }[] = [];
-
-    if (updates.title !== undefined && updates.title !== issue.title) {
-      data.title = updates.title;
-      auditEntries.push({ field: "title", fromValue: issue.title, toValue: updates.title });
-    }
-
-    if (updates.description !== undefined && updates.description !== issue.description) {
-      data.description = updates.description;
-      auditEntries.push({ field: "description", fromValue: issue.description ?? null, toValue: updates.description ?? null });
-    }
-
-    if (updates.priority !== undefined && updates.priority !== issue.priority) {
-      data.priority = updates.priority;
-      auditEntries.push({ field: "priority", fromValue: issue.priority, toValue: updates.priority });
-    }
-
-    if (Object.keys(data).length === 0) {
-      return issue; // nothing to update
-    }
-
-    data.version = { increment: 1 };
-
-    try {
-      const updated = await tx.issue.update({
-        where: { id: issue.id, version: issue.version },
-        data,
-      });
-
-      // Create one activity entry per changed field
-      for (const entry of auditEntries) {
-        await tx.issueActiviy.create({
-          data: {
-            issueId: issue.id,
-            userId,
-            field: entry.field,
-            fromValue: entry.fromValue,
-            toValue: entry.toValue,
-          },
-        });
-      }
-
-      return updated;
-    } catch {
-      throw new ApiError(409, "Issue was updated by someone else. Please refresh and try again.");
-    }
-  });
-};
-
-export const reassignIssueService = async (
-  issueId: string,
-  userId: string,
-  newAssigneeId: string | null
-) => {
-  return prisma.$transaction(async (tx) => {
-    const issue = await tx.issue.findUnique({
-      where: { id: issueId },
-      select: {
-        id: true,
-        projectId: true,
-        assigneeId: true,
-        version: true,
-      },
-    });
-
-    if (!issue) {
-      throw new ApiError(404, "Issue not found");
-    }
-
-    const membership = await tx.projectMember.findUnique({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId: issue.projectId,
-        },
-      },
-    });
-
-    if (!membership) {
-      throw new ApiError(403, "Not a project member");
-    }
-
-    if (newAssigneeId) {
-      const assigneeMembership = await tx.projectMember.findUnique({
-        where: {
-          userId_projectId: {
-            userId: newAssigneeId,
-            projectId: issue.projectId,
-          },
-        },
-      });
-
-      if (!assigneeMembership) {
-        throw new ApiError(400, "Assignee must be a project member");
-      }
-    }
-
-    if (issue.assigneeId === newAssigneeId) {
-      return issue; // no change
-    }
-
-    try {
-      const updated = await tx.issue.update({
-        where: { id: issue.id, version: issue.version },
-        data: {
-          assigneeId: newAssigneeId,
-          version: { increment: 1 },
-        },
-      });
-
-      await tx.issueActiviy.create({
-        data: {
-          issueId: issue.id,
-          userId,
-          field: "assignee",
-          fromValue: issue.assigneeId ?? null,
-          toValue: newAssigneeId ?? null,
-        },
-      });
-
-      return updated;
-    } catch {
-      throw new ApiError(409, "Issue was updated by someone else. Please refresh and try again.");
-    }
-  });
-};
+}; 
 
 export const addIssueDependencyService = async (
   issueId: string,
@@ -480,7 +295,7 @@ export const addIssueDependencyService = async (
       },
     });
 
-    await tx.issueActiviy.create({
+    await tx.issueActivity.create({
       data: {
         issueId,
         userId,
@@ -539,7 +354,7 @@ export const removeIssueDependencyService = async (
       where: { id: dependency.id },
     });
 
-    await tx.issueActiviy.create({
+    await tx.issueActivity.create({
       data: {
         issueId,
         userId,
@@ -563,7 +378,7 @@ export const getIssueActivityService = async (issueId: string) => {
     throw new ApiError(404, "Issue not found");
   }
 
-  return prisma.issueActiviy.findMany({
+  return prisma.issueActivity.findMany({
     where: { issueId },
     orderBy: { createdAt: "desc" },
     include: {
@@ -576,5 +391,111 @@ export const getIssueActivityService = async (issueId: string) => {
         },
       },
     },
+  });
+};
+
+export const updateIssueService = async (
+  issueId: string,
+  userId: string,
+  data: {
+    title?: string;
+    description?: string;
+    priority?: IssuePriority;
+    assigneeId?: string | null;
+  }
+) => {
+  return prisma.$transaction(async (tx) => {
+
+    const issue = await tx.issue.findUnique({
+      where: { id: issueId },
+    });
+
+    if (!issue) {
+      throw new ApiError(404, "Issue not found");
+    }
+
+    const membership = await tx.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId,
+          projectId: issue.projectId,
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new ApiError(403, "Not a project member");
+    }
+
+    const isPrivileged =
+      membership.role === "ADMIN" || membership.role === "OWNER";
+
+    const isAssignee = issue.assigneeId === userId;
+
+    if (!isPrivileged && !isAssignee) {
+      throw new ApiError(
+        403,
+        "Only assignee or admin can edit this issue"
+      );
+    }
+
+    const activities = [];
+
+    if (data.title && data.title !== issue.title) {
+      activities.push({
+        field: "title",
+        fromValue: issue.title,
+        toValue: data.title,
+      });
+    }
+
+    if (data.description && data.description !== issue.description) {
+      activities.push({
+        field: "description",
+        fromValue: issue.description,
+        toValue: data.description,
+      });
+    }
+
+    if (data.priority && data.priority !== issue.priority) {
+      activities.push({
+        field: "priority",
+        fromValue: issue.priority,
+        toValue: data.priority,
+      });
+    }
+
+    if (data.assigneeId !== undefined && data.assigneeId !== issue.assigneeId) {
+      activities.push({
+        field: "assignee",
+        fromValue: issue.assigneeId ?? null,
+        toValue: data.assigneeId ?? null,
+      });
+    }
+
+    const updated = await tx.issue.update({
+      where: {
+        id: issue.id,
+        version: issue.version,
+      },
+      data: {
+        ...data,
+        version: { increment: 1 },
+      },
+    });
+
+    if (activities.length > 0) {
+      await tx.issueActivity.createMany({
+        data: activities.map((a) => ({
+          issueId: issue.id,
+          userId,
+          field: a.field,
+          fromValue: a.fromValue?.toString() ?? null,
+          toValue: a.toValue?.toString() ?? null,
+        })),
+      });
+    }
+
+    return updated;
   });
 };
