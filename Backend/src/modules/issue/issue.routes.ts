@@ -2,7 +2,11 @@ import { Router } from "express";
 import {
   createIssue,
   updateIssueState,
-  selfAssignIssue
+
+
+  addDependency,
+  removeDependency,
+  getIssueActivity,
 } from "./issue.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 
@@ -20,10 +24,25 @@ router.patch(
   updateIssueState
 );
 
-router.patch(
-  "/:issueId/assign",
+
+
+
+router.post(
+  "/:issueId/dependencies",
   authMiddleware,
-  selfAssignIssue
+  addDependency
+);
+
+router.delete(
+  "/:issueId/dependencies/:blockerId",
+  authMiddleware,
+  removeDependency
+);
+
+router.get(
+  "/:issueId/activity",
+  authMiddleware,
+  getIssueActivity
 );
 
 export default router;
