@@ -5,7 +5,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import workspaceRoutes from "./modules/workspace/workspace.routes.js";
 import userRouter from "./modules/user/user.routes.js";
 import projectRoutes from "./modules/project/project.routes.js";
-
+import issueRoutes from "./modules/issue/issue.routes.js";
 const app = express();
 
 app.use(cors());
@@ -17,5 +17,6 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/workspace", workspaceRoutes);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/project", projectRoutes);
+app.use("/api/v1/issues", issueRoutes);
 
 export default app;
