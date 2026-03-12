@@ -4,10 +4,12 @@ import { z } from "zod";
   email: z.string().toLowerCase().email("Invalid email"),
   password: z.string().min(8),
   name: z.string(),
+  username: z.string().min(3),
 });
 
  const loginSchema = z.object({
   email: z.string().email(),
+  username: z.string().min(3).optional(),
   password:  z.string()
   .trim()
   .min(8, "Password must be at least 8 characters")
