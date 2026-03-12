@@ -34,4 +34,12 @@ export const getUserNotificationsService = async (
     })
   }
             
-  
+export const markNotificationAsReadService = async (
+  notificationId : string,
+  userId : string) => {
+    return prisma.notification.update({
+      where: { id: notificationId, userId },
+      data: { read: true },
+    })
+  }
+    
