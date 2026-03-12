@@ -69,3 +69,25 @@ export const getIssueCommentsService = async (
     },
   });
 }; 
+
+export const editCommentService = async (
+  commentId: string,
+  userId: string,
+  content: string ) => {
+    const comment = await prisma.issueComment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new ApiError(404, "Comment not found");
+    }
+
+    if (comment.userId !== userId) {
+      throw new ApiError(403, "You can edit only your comments");
+    }
+
+    return await prisma.issueComment.update({
+      where: { id: commentId },
+      data: { content , edited: true},
+    });
+  };
