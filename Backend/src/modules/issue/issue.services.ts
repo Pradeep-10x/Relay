@@ -1,7 +1,8 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { IssuePriority } from "@prisma/client";
-
+import { createNotification } from "../notification/notification.services.js";
+import { NotificationType } from "@prisma/client";
 export const createIssueService = async (
   projectId: string,
   userId: string,
@@ -471,6 +472,10 @@ export const updateIssueService = async (
         fromValue: issue.assigneeId ?? null,
         toValue: data.assigneeId ?? null,
       });
+
+      if(data.assigneeId){
+        await createNotification(data.assigneeId, "ISSUE_ASSIGNED", issue.id);
+      }
     }
 
     const updated = await tx.issue.update({
