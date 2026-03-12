@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
-
+import { createNotification } from "../notification/notification.services.js";
+import { extractMentions } from "../../utils/mentionParser.js";
 
 export const createCommentService = async (
   issueId: string,
@@ -47,6 +48,20 @@ export const createCommentService = async (
         },
       },
      });
+
+     //Notification
+     const mentioned = extractMentions(content);
+     if(mentioned.length > 0){
+      const users = await prisma.user.findMany({
+        where: {
+          username: { in: mentioned },
+        }
+      });
+
+      for (const user of users) {
+        await createNotification(user.id, "MENTION", issueId, comment.id);
+      }
+     }
 
      return comment;
     };
