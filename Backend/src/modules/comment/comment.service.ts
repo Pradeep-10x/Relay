@@ -51,3 +51,21 @@ export const createCommentService = async (
      return comment;
     };
     
+export const getIssueCommentsService = async (
+  issueId: string ) => {
+    
+  return await prisma.issueComment.findMany({
+    where: { issueId ,deleted : false},
+    orderBy: { createdAt: "asc" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+        },
+      },
+    },
+  });
+}; 
