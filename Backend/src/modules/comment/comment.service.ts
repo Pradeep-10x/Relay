@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
-import { createNotification } from "../notification/notification.services.js";
+import { createNotificationService } from "../notification/notification.services.js";
 import { extractMentions } from "../../utils/mentionParser.js";
 
 export const createCommentService = async (
@@ -59,7 +59,7 @@ export const createCommentService = async (
       });
 
       for (const user of users) {
-        await createNotification(user.id, "MENTION", issueId, comment.id);
+        await createNotificationService(user.id, "MENTION", issueId, comment.id);
       }
      }
 

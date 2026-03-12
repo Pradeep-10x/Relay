@@ -2,7 +2,7 @@ import { string } from "zod";
 import { prisma } from "../../lib/prisma.js";
 import { NotificationType } from "@prisma/client";
 
-export const createNotification = async (
+export const createNotificationService = async (
   userId : string,
   type : NotificationType,
   issueId? : string,
@@ -16,3 +16,22 @@ export const createNotification = async (
     },
   });
 };
+
+export const getUserNotificationsService = async (
+  userId : string) => {
+    return prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        issue: {
+          select: {
+            id: true,
+            title: true,
+          }
+        },
+        comment: true
+      }
+    })
+  }
+            
+  
