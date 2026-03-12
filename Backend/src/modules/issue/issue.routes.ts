@@ -7,6 +7,7 @@ import {
   addDependency,
   removeDependency,
   getIssueActivity,
+  getProjectBoard
 } from "./issue.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 
@@ -44,6 +45,12 @@ router.get(
   "/issues/:issueId/activity",
   authMiddleware,
   getIssueActivity
+);
+
+router.get(
+  "/projects/:projectId/board",
+  authMiddleware,
+  getProjectBoard
 );
 
 export default router;

@@ -6,7 +6,8 @@ import {
   addIssueDependencyService,
   removeIssueDependencyService,
   getIssueActivityService,
-  updateIssueService
+  updateIssueService,
+  getProjectBoardService
 } from "./issue.services.js";
 
 export const createIssue = async (req: Request, res: Response) => {
@@ -103,3 +104,13 @@ export const updateIssue = async (req: Request, res: Response) => {
 
    res.json({message : " Issue updated Successfully", isssue : updatedIssue,});
 };
+
+export const getProjectBoard = async (req: Request, res: Response) => {
+  const { projectId } = req.params;
+
+  const board = await getProjectBoardService(projectId as string, (req as any).user.id);
+
+  res.json(board);
+};
+
+  

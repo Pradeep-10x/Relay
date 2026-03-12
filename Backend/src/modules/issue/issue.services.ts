@@ -499,3 +499,70 @@ export const updateIssueService = async (
     return updated;
   });
 };
+
+export const getProjectBoardService = async (projectId: string, userId: string) => {
+   const membership = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId,
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new ApiError(403, "Not a project member");
+  }
+
+  const states = await prisma.workflowState.findMany({
+    where: {
+      projectId,
+    },
+    orderBy: {
+      order: "asc",
+    },
+  });
+
+  const issues = await prisma.issue.findMany({
+    where: {
+      projectId,
+      isDeleted: false,
+    },
+    include: {
+      assignee: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+      reporter: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+  });
+
+  const board : Record<string, any[]> = {};
+
+  states.forEach((state) => {
+    board[state.name] = [];
+  });
+
+  issues.forEach((issue) => {
+    const state = states.find((s) => s.id === issue.stateId);
+    if (state) {
+      const list = board[state.name];
+      if (list) {
+        list.push(issue);
+      }
+    }
+  });
+
+  return {
+    board
+  };
+};
