@@ -566,3 +566,72 @@ export const getProjectBoardService = async (projectId: string, userId: string) 
     board
   };
 };
+
+export const getProjectAnalyticsService = async (
+  projectId: string,
+  userId: string
+) => {
+
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId,
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new ApiError(403, "Not a project member");
+  }
+
+  const totalIssues = await prisma.issue.count({
+    where: {
+      projectId,
+      isDeleted: false,
+    },
+  });
+
+  const doneState = await prisma.workflowState.findFirst({
+    where: {
+      projectId,
+      name: "DONE",
+    },
+  });
+
+  const completedIssues = await prisma.issue.count({
+    where: {
+      projectId,
+      ...(doneState && { stateId: doneState.id }),
+      isDeleted: false,
+    },
+  });
+
+  const issuesPerState = await prisma.issue.groupBy({
+    by: ["stateId"],
+    where: {
+      projectId,
+      isDeleted: false,
+    },
+    _count: true,
+  });
+
+  const tasksPerUser = await prisma.issue.groupBy({
+    by: ["assigneeId"],
+    where: {
+      projectId,
+      isDeleted: false,
+      assigneeId: { not: null },
+    },
+    _count: true,
+  });
+
+  return {
+    totalIssues,
+    completedIssues,
+    completionRate:
+      totalIssues === 0 ? 0 : completedIssues / totalIssues,
+    issuesPerState,
+    tasksPerUser,
+  };
+};
