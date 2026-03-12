@@ -21,6 +21,7 @@ model User {
   activities          IssueActivity[]
   IssuesReported      Issue[]           @relation("IssueReporter")
   IssuesAssigned      Issue[]           @relation("IssueAssignee")
+  issueComments       IssueComment[]
 }
 
 model RefreshToken {
@@ -103,26 +104,27 @@ enum IssuePriority {
 }
 
 model Issue {
-  id          String            @id @default(uuid())
-  key         String            @unique
-  title       String
-  description String?
-  priority    IssuePriority
-  version     Int               @default(1)
-  projectId   String
-  reporterId  String
-  assigneeId  String?
-  stateId     String
-  isDeleted   Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  reporter    User              @relation("IssueReporter", fields: [reporterId], references: [id])
-  assignee    User?             @relation("IssueAssignee", fields: [assigneeId], references: [id])
-  state       WorkflowState     @relation(fields: [stateId], references: [id])
-  blocking    IssueDependency[] @relation("Blocker")
-  blockedBy   IssueDependency[] @relation("Blocked")
-  activities  IssueActivity[]
+  id            String            @id @default(uuid())
+  key           String            @unique
+  title         String
+  description   String?
+  priority      IssuePriority
+  version       Int               @default(1)
+  projectId     String
+  reporterId    String
+  assigneeId    String?
+  stateId       String
+  isDeleted     Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  project       Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reporter      User              @relation("IssueReporter", fields: [reporterId], references: [id])
+  assignee      User?             @relation("IssueAssignee", fields: [assigneeId], references: [id])
+  state         WorkflowState     @relation(fields: [stateId], references: [id])
+  blocking      IssueDependency[] @relation("Blocker")
+  blockedBy     IssueDependency[] @relation("Blocked")
+  activities    IssueActivity[]
+  issueComments IssueComment[]
 
   @@index([projectId])
   @@index([assigneeId])
@@ -179,4 +181,21 @@ model IssueActivity {
 
   @@index([issueId])
   @@map("IssueActiviy")
+}
+
+model IssueComment {
+  id        String   @id @default(uuid())
+  issueId   String
+  userId    String
+  content   String
+  edited    Boolean  @default(false)
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@map("IssueComment")
 }
