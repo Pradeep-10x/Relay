@@ -12,14 +12,15 @@ export const registerUser= async(data: {
   email: string;
   password: string;
   name?: string;
+  username: string;
 }) =>{
    
-    const existing = await prisma.user.findUnique({
-      where: { email: data.email },
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ email: data.email }, { username: data.username }] },
     });
 
     if (existing) {
-      throw new ApiError(400, "Email already in use");
+      throw new ApiError(400, "Email or username already in use");
     }
 
     const passwordHash = await hashPassword(data.password);
@@ -28,13 +29,18 @@ export const registerUser= async(data: {
       data: {
         email: data.email,
         passwordHash,
+        username:data.username,
         name: data.name as string,
       },
+        select: {
+    id: true,
+    email: true,
+    username: true,
+    name: true,
+    createdAt: true
+  },
     });
-
-
-     
-
+    
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
 
@@ -46,7 +52,7 @@ export const registerUser= async(data: {
       },
     });
 
-    return { accessToken, refreshToken };
+    return { user, accessToken, refreshToken };
 
   }
 

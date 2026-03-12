@@ -11,7 +11,7 @@ import { prisma } from "../../lib/prisma.js";
 
 export async function register(req: Request, res: Response) {
   const parsed = registerSchema.parse(req.body);
-  const {accessToken, refreshToken} = await registerUser(parsed);
+  const { user , accessToken, refreshToken} = await registerUser(parsed);
   res
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -20,7 +20,7 @@ export async function register(req: Request, res: Response) {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
     .status(201)
-    .json({ message : "User registered successfully", accessToken });
+    .json({ message : "User registered successfully", accessToken , "user" : user});
 }
 
 export async function login(req: Request, res: Response) {
