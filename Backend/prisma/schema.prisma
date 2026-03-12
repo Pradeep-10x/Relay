@@ -217,3 +217,8 @@ model Notification {
   issue   Issue?        @relation(fields: [issueId], references: [id], onDelete: Cascade)
   comment IssueComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 }
+
+enum NotificationType {
+  MENTION
+  ISSUE_ASSIGNED
+}
