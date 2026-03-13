@@ -1,13 +1,14 @@
 import { string } from "zod";
 import { prisma } from "../../lib/prisma.js";
 import { NotificationType } from "@prisma/client";
+import { getIo } from "../../lib/socket.js";
 
 export const createNotificationService = async (
   userId : string,
   type : NotificationType,
   issueId? : string,
   commentId? : string) => {
-  return prisma.notification.create({
+  const notification = await prisma.notification.create({
     data: {
       userId,
       type,
@@ -15,6 +16,10 @@ export const createNotificationService = async (
       commentId: commentId ?? null,
     },
   });
+
+  const io = getIo();
+  io.to(userId).emit("notification", notification);
+  return notification;
 };
 
 export const getUserNotificationsService = async (
