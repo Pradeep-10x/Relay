@@ -1,5 +1,6 @@
 import {Server} from "socket.io";
  let io : Server;
+ import { prisma } from "./prisma.js";
 
  export const initSocket = (server : any) => {
   io = new Server(server, {
@@ -10,7 +11,19 @@ import {Server} from "socket.io";
   io.on("connection", (socket) => {
     console.log("Socket connected", socket.id);
     
-    socket.on("joinProjectBoard", (projectId : string) => {
+    socket.on("joinProjectBoard", (projectId : string , userId : string) => {
+
+      const membership = prisma.projectMember.findUnique({
+        where: {
+          userId_projectId: {
+            userId,
+            projectId,
+          },
+        },
+      });
+      if(!membership) {
+        throw new Error("User is not a member of this project");
+      }
       socket.join(projectId);
       console.log(`join ${projectId}`);
     });
