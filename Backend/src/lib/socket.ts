@@ -7,15 +7,23 @@ import {Server} from "socket.io";
       origin: "*",
     },
   });
-
   io.on("connection", (socket) => {
-    console.log("User connected", socket.id);
+    console.log("Socket connected", socket.id);
+    
+    socket.on("joinProjectBoard", (projectId : string) => {
+      socket.join(projectId);
+      console.log(`join ${projectId}`);
+    });
 
-    socket.on("disconnect", () => {
-      console.log("User disconnected", socket.id);
+    socket.on("drawStroke", ({projectId, stroke}) => {
+      socket.to(`project-${projectId}`).emit("drawStroke", stroke);
+    });
+    
+    socket.on("clearBoard", ({projectId}) => {
+      socket.to(`project-${projectId}`).emit("clearBoard");
     });
   });
- }
+ };
 
  export const getIo = () => {
   if(!io) {
