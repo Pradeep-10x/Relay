@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: relay-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: relay
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: relay-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: .
+    container_name: relay-backend
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
