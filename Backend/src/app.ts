@@ -11,6 +11,7 @@ import notificationRoutes from "./modules/notification/notification.routes.js";
 import activityRoutes from "./modules/activity/activity.routes.js";
 import boardRoutes from "./modules/board/board.routes.js";
 import { rateLimiter } from "./middleware/rateLimiter.js";
+import kanbanRoutes from "./modules/kanban/kanban.routes.js";
 const app = express();
 
 app.use(cors());
@@ -28,5 +29,6 @@ app.use("/api/v1", commentRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1", activityRoutes);
 app.use("/api/v1", boardRoutes);
+app.use("/api/v1", kanbanRoutes);
 
 export default app;
