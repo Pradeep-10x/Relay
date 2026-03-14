@@ -1,4 +1,5 @@
 import { Redis } from "ioredis";
+import { logger } from "./logger.js";
 
 export const redis = new Redis({
     host: "localhost",
@@ -6,9 +7,9 @@ export const redis = new Redis({
 });
 
 redis.on("connect", () => {
-    console.log("Redis connected");
+    logger.info("Redis connected");
 });
     
 redis.on("error", (err) => {
-    console.log("Redis error", err);
+    logger.error(err, "Redis error");
 });

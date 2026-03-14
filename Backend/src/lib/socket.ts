@@ -1,6 +1,7 @@
 import {Server} from "socket.io";
  let io : Server;
  import { redis } from "./redis.js";
+ import { logger } from "./logger.js";
  import { prisma } from "./prisma.js";
  import { createAdapter } from "@socket.io/redis-adapter";
  import { saveStrokeService } from "../modules/board/board.services.js";
@@ -17,7 +18,7 @@ import {Server} from "socket.io";
   const subClient = pubClient.duplicate();
   io.adapter(createAdapter(pubClient, subClient));
   io.on("connection", (socket) => {
-    console.log("Socket connected", socket.id);
+    logger.info({ id: socket.id }, "Socket connected");
     
     socket.on("joinProjectBoard", (projectId : string , userId : string) => {
 
@@ -33,7 +34,7 @@ import {Server} from "socket.io";
         throw new Error("User is not a member of this project");
       }
       socket.join(`project-${projectId}`);
-      console.log(`join ${projectId}`);
+      logger.info({ projectId }, "joined project board");
     });
 
     socket.on("drawStroke", async ({projectId, stroke}) => {
@@ -55,7 +56,7 @@ import {Server} from "socket.io";
     });
   
     socket.on("disconnect", () => {
-      console.log("Socket disconnected", socket.id);
+      logger.info({ id: socket.id }, "Socket disconnected");
     });
   });
  };
@@ -84,7 +85,7 @@ import {Server} from "socket.io";
         boardBuffers[projectId] = [];
       }
     } catch (error) {
-      console.log("Error in board save", error);
+      logger.error(error, "Error in board save");
     }
     
   }, 3000);

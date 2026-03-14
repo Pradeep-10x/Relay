@@ -11,6 +11,7 @@ import notificationRoutes from "./modules/notification/notification.routes.js";
 import boardRoutes from "./modules/board/board.routes.js";
 import { rateLimiter } from "./middleware/rateLimiter.js";
 import kanbanRoutes from "./modules/kanban/kanban.routes.js";
+import { httpLogger } from "./middleware/logger.middleware.js";
 const app = express();
 
 app.use(cors());
@@ -19,6 +20,7 @@ app.use(cookieParser());
 
 app.set("trust proxy", true); 
 app.use(rateLimiter);
+app.use(httpLogger);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/workspace", workspaceRoutes);
 app.use("/api/v1/user", userRouter);
