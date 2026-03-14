@@ -10,6 +10,7 @@ import commentRoutes from "./modules/comment/comment.routes.js";
 import notificationRoutes from "./modules/notification/notification.routes.js";
 import activityRoutes from "./modules/activity/activity.routes.js";
 import boardRoutes from "./modules/board/board.routes.js";
+import { rateLimiter } from "./middleware/rateLimiter.js";
 const app = express();
 
 app.use(cors());
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.set("trust proxy", true); 
+app.use(rateLimiter);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/workspace", workspaceRoutes);
 app.use("/api/v1/user", userRouter);

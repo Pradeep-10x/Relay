@@ -1,4 +1,28 @@
 node_modules
-dist
+npm-debug.log*
+
+
 .env
+.env.*
+
+src/generated
+
+dist
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git
 .git
+.gitignore
+
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
