@@ -6,6 +6,8 @@ import {
     generateAvatarUploadUrlService,
     saveAvatarKeyService,
     getAvatarUrlService,
+    updateProfileService,
+    changePasswordService
 } from "./user.service.js";
 
 // Requesting upload URL for avatar from frontend
@@ -43,7 +45,7 @@ export const getCurrentUserProfile = asyncHandler(async (req: Request, res: Resp
 
     const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, email: true, name: true, avatar: true },
+        select: { id: true, username: true, email: true, name: true, avatar: true },
     });
     
     if (!user) {
@@ -55,4 +57,24 @@ export const getCurrentUserProfile = asyncHandler(async (req: Request, res: Resp
         avatarUrl = await getAvatarUrlService(user.avatar);
     }
     res.json({ user: { id: user.id, email: user.email, name: user.name, avatar: avatarUrl } }); 
+});
+
+export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized");
+    }
+    const { name, username, avatar } = req.body;
+    const user = await updateProfileService(userId, name, username, avatar);
+    res.json({ message: "Profile updated successfully", user });
+});
+
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized");
+    }
+    const { oldPassword, newPassword } = req.body;
+    const user = await changePasswordService(userId, oldPassword, newPassword);
+    res.json({ message: "Password changed successfully" });
 });
