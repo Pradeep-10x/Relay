@@ -83,7 +83,7 @@ export const removeDependency = async (req: Request, res: Response) => {
 export const getIssueActivity = async (req: Request, res: Response) => {
   const { issueId } = req.params;
 
-  const activity = await getIssueActivityService(issueId as string);
+  const activity = await getIssueActivityService(issueId as string, (req as any).user.id);
 
   res.json(activity);
 };
