@@ -12,3 +12,7 @@ export const addMemberSchema = z.object({
 export const getMembersSchema = z.object({
   workspaceId: z.string(),
 });
+
+export const removeMemberSchema = z.object({
+  memberId: z.string().min(1, "Member ID is required"),
+});

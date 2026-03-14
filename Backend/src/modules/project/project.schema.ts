@@ -5,6 +5,11 @@ export const createProjectSchema = z.object({
 });
 
 export const addMemberSchema = z.object({
-    email: z.string().email("Invalid email address"),
-    role: z.enum(["ADMIN", "MEMBER"], "Role must be either ADMIN or MEMBER"),
+  email: z.string().email("Invalid email address"),
+  role: z.enum(["ADMIN", "MEMBER"], "Role must be either ADMIN or MEMBER"),
+});
+
+export const projectParamsSchema = z.object({
+  workspaceId: z.string().min(1, "Workspace ID is required").optional(),
+  projectId: z.string().min(1, "Project ID is required").optional(),
 });

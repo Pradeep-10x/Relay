@@ -9,6 +9,7 @@ import {
     updateProfileService,
     changePasswordService
 } from "./user.service.js";
+import { updateAvatarKeySchema, updateProfileSchema, changePasswordSchema } from "./user.schema.js";
 
 // Requesting upload URL for avatar from frontend
 export const generateAvatarUploadUrl = asyncHandler(async (req: Request, res: Response) => {
@@ -26,11 +27,7 @@ export const updateurl = asyncHandler(async (req: Request, res: Response) => {
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }
-    const { key } = req.body;
-
-    if (!key) {
-        throw new ApiError(400, "Avatar Key is required");
-    }
+    const { key } = updateAvatarKeySchema.parse(req.body);
 
     const user = await saveAvatarKeyService(userId, key);
     res.json({ message: "Avatar updated successfully", avatarKey: user.avatar });
@@ -64,7 +61,7 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }
-    const { name, username, avatar } = req.body;
+    const { name, username, avatar } = updateProfileSchema.parse(req.body);
     const user = await updateProfileService(userId, name, username, avatar);
     res.json({ message: "Profile updated successfully", user });
 });
@@ -74,7 +71,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }
-    const { oldPassword, newPassword } = req.body;
+    const { oldPassword, newPassword } = changePasswordSchema.parse(req.body);
     const user = await changePasswordService(userId, oldPassword, newPassword);
     res.json({ message: "Password changed successfully" });
 });

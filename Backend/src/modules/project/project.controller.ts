@@ -8,10 +8,11 @@ import {
 import {
   createProjectSchema,
   addMemberSchema,
+  projectParamsSchema,
 } from "./project.schema.js";
 
 export const createProject = async (req: Request, res: Response) => {
-  const { workspaceId } = req.params;
+  const { workspaceId } = projectParamsSchema.parse(req.params);
 
   const parsed = createProjectSchema.parse(req.body);
 
@@ -28,7 +29,7 @@ export const getWorkspaceProjects = async (
   req: Request,
   res: Response
 ) => {
-  const { workspaceId } = req.params;
+  const { workspaceId } = projectParamsSchema.parse(req.params);
 
   const projects = await getWorkspaceProjectsService(
     (req as any).user.id,
@@ -39,7 +40,7 @@ export const getWorkspaceProjects = async (
 };
 
 export const deleteProject = async (req: Request, res: Response) => {
-  const { projectId } = req.params;
+  const { projectId } = projectParamsSchema.parse(req.params);
 
   await deleteProjectService(projectId as string, (req as any).user.id);
 
@@ -50,7 +51,7 @@ export const addProjectMember = async (
   req: Request,
   res: Response
 ) => {
-  const { projectId } = req.params;
+  const { projectId } = projectParamsSchema.parse(req.params);
 
   const parsed = addMemberSchema.parse(req.body);
 
