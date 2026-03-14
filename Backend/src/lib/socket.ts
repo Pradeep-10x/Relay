@@ -1,14 +1,21 @@
 import {Server} from "socket.io";
  let io : Server;
- const boardBuffers : Record<string, any[]> = {};
+ import { redis } from "./redis.js";
  import { prisma } from "./prisma.js";
+ import { createAdapter } from "@socket.io/redis-adapter";
  import { saveStrokeService } from "../modules/board/board.services.js";
+
+ const boardBuffers : Record<string, any[]> = {};
  export const initSocket = (server : any) => {
   io = new Server(server, {
     cors: {
       origin: "*",
     },
   });
+
+  const pubClient = redis.duplicate();
+  const subClient = pubClient.duplicate();
+  io.adapter(createAdapter(pubClient, subClient));
   io.on("connection", (socket) => {
     console.log("Socket connected", socket.id);
     

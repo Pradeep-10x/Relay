@@ -1,7 +1,7 @@
 import { Redis } from "ioredis";
 
 export const redis = new Redis({
-    host: "redis",
+    host: "localhost",
     port: 6379,
 });
 

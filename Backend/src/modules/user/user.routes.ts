@@ -3,7 +3,7 @@ import {
   generateAvatarUploadUrl,
   updateurl,
   getCurrentUserProfile,
-} from "./user.avatar.js";
+} from "./user.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 
 const router = Router();
