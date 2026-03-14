@@ -3,6 +3,7 @@ import { ApiError } from "../../utils/ApiError.js";
 import { IssuePriority } from "@prisma/client";
 import { createNotificationService } from "../notification/notification.services.js";
 import { NotificationType } from "@prisma/client";
+import { getCache, setCache , deleteCache } from "../../utils/cache.js";
 export const createIssueService = async (
   projectId: string,
   userId: string,
@@ -74,7 +75,8 @@ export const createIssueService = async (
         version: 1,
       },
     });
-
+    await deleteCache(`board:${projectId}`);
+    await deleteCache(`analytics:${projectId}`);
     return issue;
   });
 };
@@ -98,7 +100,7 @@ export const selfAssignIssueService = async (
   if (result.count === 0) {
     throw new ApiError(409, "Issue already assigned");
   }
-
+  
   return { success: true };
 };
 
@@ -223,7 +225,8 @@ if (unresolvedBlockers) {
              toValue: targetStateId,
         },
       });
-
+       await deleteCache(`board:${issue.projectId}`);
+    await deleteCache(`analytics:${issue.projectId}`);
       return updated;
     } catch (error) {
       // version mismatch = concurrent update
@@ -305,7 +308,8 @@ export const addIssueDependencyService = async (
         toValue: blockerId,
       },
     });
-
+    await deleteCache(`board:${issue.projectId}`);
+    await deleteCache(`analytics:${issue.projectId}`);
     return dependency;
   });
 };
@@ -364,7 +368,8 @@ export const removeIssueDependencyService = async (
         toValue: null,
       },
     });
-
+    await deleteCache(`board:${issue.projectId}`);
+    await deleteCache(`analytics:${issue.projectId}`);
     return { success: true };
   });
 };
@@ -500,7 +505,8 @@ export const updateIssueService = async (
         })),
       });
     }
-
+    await deleteCache(`board:${issue.projectId}`);
+    await deleteCache(`analytics:${issue.projectId}`);
     return updated;
   });
 };
@@ -576,7 +582,11 @@ export const getProjectAnalyticsService = async (
   projectId: string,
   userId: string
 ) => {
-
+   const cacheKey = `analytics:${projectId}`;
+   const cached = await getCache(cacheKey);
+   if (cached) {
+    return cached;
+   }
   const membership = await prisma.projectMember.findUnique({
     where: {
       userId_projectId: {
@@ -585,7 +595,7 @@ export const getProjectAnalyticsService = async (
       },
     },
   });
-
+  
   if (!membership) {
     throw new ApiError(403, "Not a project member");
   }
@@ -631,7 +641,7 @@ export const getProjectAnalyticsService = async (
     _count: true,
   });
 
-  return {
+  const analytics = {
     totalIssues,
     completedIssues,
     completionRate:
@@ -639,4 +649,8 @@ export const getProjectAnalyticsService = async (
     issuesPerState,
     tasksPerUser,
   };
+
+  await setCache(cacheKey, analytics, 30);
+
+  return analytics;
 };

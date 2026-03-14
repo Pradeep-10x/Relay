@@ -1,7 +1,13 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { getCache , setCache } from "../../utils/cache.js";
 
 export const getKanbanBoardService = async (projectId : string , userId : string) => {
+
+    const cacheKey = `board:${projectId}`;
+    const cached = await getCache(cacheKey); 
+    if (cached) 
+        return cached;
   const membership = await prisma.projectMember.findUnique({
     where: {
       userId_projectId: {
@@ -52,6 +58,6 @@ export const getKanbanBoardService = async (projectId : string , userId : string
         columnList.push(issue);
       }
   } } )
-
+  await setCache(cacheKey, board, 30);
   return board;
 };
