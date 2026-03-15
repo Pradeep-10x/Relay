@@ -1,6 +1,7 @@
 import {prisma} from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { WorkspaceRole } from "@prisma/client";
+import crypto from "crypto";
 
 export const createWorkspaceService = async (userId: string, name: string) => {
 
@@ -33,9 +34,18 @@ export const getUserWorkspacesService = async (userId: string) => {
                 }
             }
         },
-        include: {
-            members: true,
-        }
+        select: {
+          id: true,
+          name: true,
+          members: {
+            where: {
+              userId,
+            },
+            select: {
+              role: true,
+            },
+          },
+        },
     });
 };
 
@@ -245,3 +255,50 @@ export const deleteWorkspaceMemberService = async (
     });
   });
 };
+
+//invite to workspace by owner/admin only
+export const inviteToWorkspaceService = async (
+  workspaceId: string,
+  userId: string,
+  role ? : WorkspaceRole ) => {
+    return prisma.$transaction(async(tx)=> {
+      if(role === WorkspaceRole.OWNER)
+      {
+        throw new ApiError(400, "Cannot assign OWNER role");
+      }
+      const membership = await tx.workspaceMember.findUnique({
+        where: {
+          userId_workspaceId: {
+            userId,
+            workspaceId,
+          },
+        },
+      });
+
+      if(!membership)
+      {
+        throw new ApiError(403, "You are not a member of this workspace");
+      }
+
+      if(membership.role !== WorkspaceRole.OWNER && membership.role !== WorkspaceRole.ADMIN)
+      {
+        throw new ApiError(403, "Only workspace owners and admins can invite members");
+      }
+      const link = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() +  24 * 60 * 60 * 1000);
+      return await tx.workspaceInvite.create({
+        data: {
+          workspaceId,
+          role,
+          token: link,
+          expiresAt,
+          createdBy: userId,
+        }
+      });
+    });
+    
+  
+  
+  
+  
+  

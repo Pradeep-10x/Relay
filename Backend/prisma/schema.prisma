@@ -45,6 +45,7 @@ model Workspace {
   updatedAt DateTime          @updatedAt
   projects  Project[]
   members   WorkspaceMember[]
+  invites   WorkspaceInvite[]
 }
 
 model WorkspaceMember {
@@ -58,6 +59,20 @@ model WorkspaceMember {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+model WorkspaceInvite {
+  id          String        @id @default(uuid())
+  workspaceId String
+  role        WorkspaceRole @default(MEMBER)
+  token       String        @unique
+  createdBy   String
+  createdAt   DateTime      @default(now())
+  expiresAt   DateTime
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@index([workspaceId])
 }
 

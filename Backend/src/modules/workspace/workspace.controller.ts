@@ -2,7 +2,7 @@ import {Request , Response} from "express";
 import { asyncHandler
  } from "../../utils/AsyncHandler.js";
  import { ApiError } from "../../utils/ApiError.js";
- import { createWorkspaceService , getUserWorkspacesService ,addMembersToWorkspaceService ,getWorkspaceMembersService , deleteWorkspaceService , deleteWorkspaceMemberService} from "./workspace.service.js";
+ import { createWorkspaceService , getUserWorkspacesService ,addMembersToWorkspaceService ,getWorkspaceMembersService , deleteWorkspaceService , deleteWorkspaceMemberService , inviteToWorkspaceService , joinWorkspaceService} from "./workspace.service.js";
 import { workspaceSchema , addMemberSchema , getMembersSchema, removeMemberSchema } from "./workspace.schema.js";
 
 export const createWorkspace = asyncHandler(async (req: Request, res: Response) => {
@@ -55,3 +55,17 @@ export const removeMemberFromWorkspace = asyncHandler(async (req: Request, res: 
     res.status(200).json({ message: "Member removed successfully", deleteMembership });
 }
 );
+
+export const inviteToWorkspace = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const { workspaceId } = req.params;
+    const invite = await inviteToWorkspaceService(workspaceId as string, user.id);
+    res.status(200).json({ message: "Invite Code Generated for 24hrs Validity", invite });
+});
+
+export const joinWorkspace = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const { inviteCode } = req.params;
+    const workspace = await joinWorkspaceService(inviteCode as string, user.id);
+    res.status(200).json({ message: "Joined workspace successfully", workspace });
+});

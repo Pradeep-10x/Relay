@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
-import { createWorkspace , getWorkspaces , addMemberToWorkspace ,getWorkspaceMembers ,deleteWorkspace , removeMemberFromWorkspace} from "./workspace.controller.js";
+import { createWorkspace , getWorkspaces , addMemberToWorkspace ,getWorkspaceMembers ,deleteWorkspace , removeMemberFromWorkspace , inviteToWorkspace , joinWorkspace} from "./workspace.controller.js";
 
 const router = Router();    
 
@@ -154,4 +154,55 @@ router.delete("/:workspaceId/delete", authMiddleware, deleteWorkspace);
  *         description: Member removed successfully
  */
 router.delete("/:workspaceId/remove-member", authMiddleware, removeMemberFromWorkspace);
+
+/**
+ * @swagger
+ * /workspace/{workspaceId}/invite:
+ *   post:
+ *     summary: Invite member to workspace
+ *     tags: [Workspaces]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: workspaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [role]
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [ADMIN, MEMBER]
+ *     responses:
+ *       200:
+ *         description: Member invited successfully
+ */
+router.post("/:workspaceId/invite", authMiddleware, inviteToWorkspace);
+
+/**
+ * @swagger
+ * /workspace/{inviteCode}/join:
+ *   post:
+ *     summary: Join workspace using invite code
+ *     tags: [Workspaces]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: inviteCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Joined workspace successfully
+ */
+router.post("/:inviteCode/join", authMiddleware, joinWorkspace);
 export default router;
