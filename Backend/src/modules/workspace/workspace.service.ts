@@ -288,16 +288,57 @@ export const inviteToWorkspaceService = async (
       const expiresAt = new Date(Date.now() +  24 * 60 * 60 * 1000);
       return await tx.workspaceInvite.create({
         data: {
-          workspaceId,
-          role,
-          token: link,
+          workspaceId ,
+          role : role || WorkspaceRole.MEMBER,
+          token: link ,
           expiresAt,
           createdBy: userId,
         }
       });
     });
-    
+  }
   
+  export const joinWorkspaceService = async (
+    token: string,
+    userId: string,
+  ) => {
+    return prisma.$transaction(async(tx)=> {
+      const invite = await tx.workspaceInvite.findUnique({
+        where: {
+          token,
+        },
+      });
+      if(!invite)
+      {
+        throw new ApiError(404, "Invite not found");
+      }
+      if(invite.expiresAt < new Date())
+      {
+        throw new ApiError(400, "Invite has expired");
+      }
+      const membership = await tx.workspaceMember.findUnique({
+        where: {
+          userId_workspaceId: {
+            userId,
+            workspaceId: invite.workspaceId,
+          },
+        },
+      });
+      if(membership)
+      {
+        throw new ApiError(400, "You are already a member of this workspace");
+      }
+      return await tx.workspaceMember.create({
+        data: {
+          userId,
+          workspaceId: invite.workspaceId,
+          role: invite.role,
+        },
+      });
+    });
+  };
+            
+      
   
   
   
