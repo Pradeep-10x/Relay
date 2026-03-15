@@ -3,8 +3,7 @@ node_modules
 .env
 
 /src/generated/prisma
-
-
+.vscode/
 dist
 dist-tsc
 build
