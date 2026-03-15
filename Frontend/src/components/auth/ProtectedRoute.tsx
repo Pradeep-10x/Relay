@@ -9,5 +9,5 @@ export function ProtectedRoute() {
 
 export function PublicRoute() {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
-  return isAuthenticated ? <Navigate to={ROUTES.WORKSPACE} replace /> : <Outlet />
+  return isAuthenticated ? <Navigate to="/onboarding" replace /> : <Outlet />
 }

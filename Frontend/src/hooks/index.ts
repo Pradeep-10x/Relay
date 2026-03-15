@@ -22,7 +22,7 @@ export function useLogin() {
     onSuccess: ({ user, token }) => {
       setAuth(user, token)
       toast.success('Welcome back!')
-      navigate(ROUTES.WORKSPACE)
+      navigate('/onboarding')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Invalid credentials')
@@ -40,7 +40,7 @@ export function useRegister() {
     onSuccess: ({ user, token }) => {
       setAuth(user, token)
       toast.success('Account created!')
-      navigate(ROUTES.WORKSPACE)
+      navigate('/onboarding')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Registration failed')
@@ -162,7 +162,7 @@ export function useJoinWorkspace() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.WORKSPACES })
       toast.success('Joined workspace!')
-      navigate(ROUTES.WORKSPACE)
+      navigate('/onboarding')
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to join workspace')

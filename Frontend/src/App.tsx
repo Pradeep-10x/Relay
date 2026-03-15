@@ -6,13 +6,13 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar, AppShell } from '@/components/layout/Topbar'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { OnboardingPage } from '@/pages/OnboardingPage'
 import { WorkspaceDashboard } from '@/pages/WorkspaceDashboard'
 import { KanbanBoardPage } from '@/pages/KanbanBoardPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { NotificationsPage } from '@/pages/NotificationsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { JoinWorkspacePage } from '@/pages/JoinWorkspacePage'
-import { ROUTES } from '@/constants'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,25 +47,30 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          {/* Public routes */}
+          {/* Public: Login & Register */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Route>
 
-          {/* Join workspace (needs auth) */}
+          {/* Protected: Onboarding (workspace picker) */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/onboarding" element={<OnboardingPage />} />
+          </Route>
+
+          {/* Protected: Join workspace via invite */}
           <Route element={<ProtectedRoute />}>
             <Route path="/join/:inviteCode" element={<JoinWorkspacePage />} />
           </Route>
 
-          {/* Protected app routes */}
+          {/* Protected: Main app with sidebar */}
           <Route element={<ProtectedRoute />}>
             <Route path="/workspace/*" element={<AppLayout />} />
           </Route>
 
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to={ROUTES.WORKSPACE} replace />} />
-          <Route path="*" element={<Navigate to={ROUTES.WORKSPACE} replace />} />
+          {/* Default → onboarding */}
+          <Route path="/" element={<Navigate to="/onboarding" replace />} />
+          <Route path="*" element={<Navigate to="/onboarding" replace />} />
         </Routes>
       </BrowserRouter>
       <Toaster
