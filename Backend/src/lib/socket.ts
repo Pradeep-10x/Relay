@@ -14,9 +14,15 @@ import {Server} from "socket.io";
     },
   });
 
-  const pubClient = redis.duplicate();
-  const subClient = pubClient.duplicate();
-  io.adapter(createAdapter(pubClient, subClient));
+  // Try Redis adapter — if it fails, socket still works (single-node mode)
+  try {
+    const pubClient = redis.duplicate();
+    const subClient = pubClient.duplicate();
+    io.adapter(createAdapter(pubClient, subClient));
+    logger.info("Socket.IO Redis adapter initialized");
+  } catch (err) {
+    logger.warn("Socket.IO Redis adapter failed, running in single-node mode");
+  }
   io.on("connection", (socket) => {
     logger.info({ id: socket.id }, "Socket connected");
     
