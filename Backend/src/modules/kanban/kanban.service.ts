@@ -30,9 +30,19 @@ export const getKanbanBoardService = async (projectId : string , userId : string
       isDeleted: false
     },
     include: {
+      state: true,
       assignee: {
         select: {
           id: true,
+          name: true,
+          username: true,
+          avatar: true,
+        },
+      },
+      reporter: {
+        select: {
+          id: true,
+          name: true,
           username: true,
           avatar: true,
         },
