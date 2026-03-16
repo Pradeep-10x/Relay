@@ -68,6 +68,7 @@ export const getKanbanBoardService = async (projectId : string , userId : string
         columnList.push(issue);
       }
   } } )
-  await setCache(cacheKey, board, 30);
-  return board;
+  const result = { board, states: states.map(s => ({ id: s.id, name: s.name })) };
+  await setCache(cacheKey, result, 30);
+  return result;
 };

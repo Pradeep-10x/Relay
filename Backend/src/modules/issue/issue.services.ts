@@ -142,24 +142,27 @@ export const updateIssueStateService = async (
       throw new ApiError(400, "Issue already in this state");
     }
 
-    const transition = await tx.workflowTransition.findFirst({
-      where: {
-        projectId: issue.projectId,
-        fromStateId: issue.stateId,
-        toStateId: targetStateId,
-      },
-      select: { allowedRoles: true },
-    });
+    // OWNER and ADMIN can move issues to any state freely
+    // MEMBER role must follow defined workflow transitions
+    const isPrivileged = membership.role === "OWNER" || membership.role === "ADMIN";
 
-    if (!transition) {
-      throw new ApiError(400, "Invalid state transition");
-    }
+    if (!isPrivileged) {
+      const transition = await tx.workflowTransition.findFirst({
+        where: {
+          projectId: issue.projectId,
+          fromStateId: issue.stateId,
+          toStateId: targetStateId,
+        },
+        select: { allowedRoles: true },
+      });
 
-    if (
-      !transition.allowedRoles.includes(membership.role) &&
-      membership.role !== "OWNER"
-    ) {
-      throw new ApiError(403, "You are not allowed to perform this transition");
+      if (!transition) {
+        throw new ApiError(400, "Invalid state transition");
+      }
+
+      if (!transition.allowedRoles.includes(membership.role)) {
+        throw new ApiError(403, "You are not allowed to perform this transition");
+      }
     }
 
     const targetState = await tx.workflowState.findUnique({
