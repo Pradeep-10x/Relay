@@ -98,6 +98,96 @@ const options: swaggerJsdoc.Options = {
              read: { type: 'boolean' },
              createdAt: { type: 'string', format: 'date-time' },
           }
+        },
+        RefreshToken: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            token: { type: 'string' },
+            userId: { type: 'string', format: 'uuid' },
+            createdAt: { type: 'string', format: 'date-time' },
+            expiresAt: { type: 'string', format: 'date-time' },
+            revoked: { type: 'boolean' },
+          }
+        },
+        WorkspaceMember: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            workspaceId: { type: 'string', format: 'uuid' },
+            role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+            createdAt: { type: 'string', format: 'date-time' },
+          }
+        },
+        WorkspaceInvite: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            workspaceId: { type: 'string', format: 'uuid' },
+            role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+            token: { type: 'string' },
+            createdBy: { type: 'string', format: 'uuid' },
+            createdAt: { type: 'string', format: 'date-time' },
+            expiresAt: { type: 'string', format: 'date-time' },
+          }
+        },
+        ProjectMember: {
+          type: 'object',
+          properties: {
+            userId: { type: 'string', format: 'uuid' },
+            projectId: { type: 'string', format: 'uuid' },
+            role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+            joinedAt: { type: 'string', format: 'date-time' },
+          }
+        },
+        WorkflowState: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            name: { type: 'string' },
+            projectId: { type: 'string', format: 'uuid' },
+            order: { type: 'integer' },
+          }
+        },
+        WorkflowTransition: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            projectId: { type: 'string', format: 'uuid' },
+            fromStateId: { type: 'string', format: 'uuid' },
+            toStateId: { type: 'string', format: 'uuid' },
+            allowedRoles: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+          }
+        },
+        IssueDependency: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            blockerId: { type: 'string', format: 'uuid' },
+            blockedId: { type: 'string', format: 'uuid' },
+          }
+        },
+        IssueActivity: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            issueId: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            field: { type: 'string' },
+            fromValue: { type: 'string', nullable: true },
+            toValue: { type: 'string', nullable: true },
+            createdAt: { type: 'string', format: 'date-time' },
+          }
+        },
+        ProjectBoard: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            projectId: { type: 'string', format: 'uuid' },
+            strokes: { type: 'object' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          }
         }
       },
     },
@@ -114,7 +204,8 @@ const options: swaggerJsdoc.Options = {
       { name: 'Issues', description: 'Issue tracking endpoints' },
       { name: 'Comments', description: 'Issue comment endpoints' },
       { name: 'Notifications', description: 'User notifications endpoints' },
-      { name: 'Whiteboard', description: 'Drawing board endpoints' }
+      { name: 'Whiteboard', description: 'Drawing board endpoints' },
+      { name: 'Kanban', description: 'Kanban board endpoints' }
     ]
   },
   apis: ['./src/modules/**/*.ts'],

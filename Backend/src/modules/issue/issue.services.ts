@@ -657,7 +657,7 @@ export const getProjectAnalyticsService = async (
     totalIssues,
     completedIssues,
     completionRate:
-      totalIssues === 0 ? 0 : completedIssues / totalIssues,
+      totalIssues === 0 ? 0 : (completedIssues / totalIssues) * 100,
     issuesPerState,
     tasksPerUser,
   };
