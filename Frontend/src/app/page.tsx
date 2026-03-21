@@ -54,7 +54,7 @@ export default function LandingPage() {
               <Icon name="code" className="text-base" />
               GitHub 
             </a>
-            <Link href="/login" className="ln-btn-primary ln-btn--sm">
+            <Link href="/auth" className="ln-btn-primary ln-btn--sm">
               Login
             </Link>
           </div>
@@ -79,7 +79,7 @@ export default function LandingPage() {
               </p>
 
               <div className="ln-hero-actions">
-                <Link href="/register" className="ln-btn-neon">
+                <Link href="/auth" className="ln-btn-neon">
                   Start Tracking
                 </Link> 
                 <a
@@ -148,7 +148,7 @@ Set up in minutes. Built to scale.
               </h2>
               <div className="ln-final-cta-actions">
                 <Link 
-                  href="/register" 
+                  href="/auth" 
                   className="relative flex items-center justify-center text-sm font-bold text-black bg-white rounded-full h-12 p-1 pl-6 pr-14 group transition-all duration-500 hover:pl-14 hover:pr-6 hover:bg-gray-200 w-fit overflow-hidden cursor-pointer"
                 >
                   <span className="relative z-10 transition-all duration-500">

@@ -112,7 +112,7 @@ export default function AuthPage() {
 	} as any;
 
 	return (
-		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2">
+		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2 bg-zinc-50 dark:bg-black">
 			<div className="bg-muted/60 relative hidden h-full flex-col border-r p-10 lg:flex">
 				<div className="from-background absolute inset-0 z-10 bg-gradient-to-t to-transparent" />
 				<div className="z-10 flex items-center gap-2">
@@ -127,11 +127,40 @@ export default function AuthPage() {
 			<div className="relative flex min-h-screen flex-col justify-center p-4">
 				<div
 					aria-hidden
-					className="absolute inset-0 isolate contain-strict -z-10 opacity-60"
+					className="absolute inset-0 overflow-hidden flex items-center justify-center p-4 z-0 pointer-events-none"
 				>
-					<div className="bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,--theme(--color-foreground/.06)_0,hsla(0,0%,55%,.02)_50%,--theme(--color-foreground/.01)_80%)] absolute top-0 right-0 h-320 w-140 -translate-y-87.5 rounded-full" />
-					<div className="bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] absolute top-0 right-0 h-320 w-60 [translate:5%_-50%] rounded-full" />
-					<div className="bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] absolute top-0 right-0 h-320 w-60 -translate-y-87.5 rounded-full" />
+					{/* Ambient glow blobs */}
+					<div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-zinc-200/50 dark:bg-zinc-900/50 blur-3xl opacity-60 dark:opacity-80 mix-blend-multiply dark:mix-blend-screen" />
+					<div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-zinc-200/50 dark:bg-zinc-900/50 blur-3xl opacity-60 dark:opacity-80 mix-blend-multiply dark:mix-blend-screen" />
+
+					{/* 3D Workflow Boxes & Wavy Strings */}
+					<svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 dark:opacity-70" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1000 1000" aria-hidden="true">
+						<defs>
+							<g id="box3d">
+								{/* Top Face */}
+								<polygon points="0,-40 60,-10 0,20 -60,-10" className="fill-zinc-200 dark:fill-zinc-800 stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" strokeLinejoin="round" />
+								{/* Left Face */}
+								<polygon points="-60,-10 0,20 0,80 -60,50" className="fill-zinc-300 dark:fill-zinc-700 stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" strokeLinejoin="round" />
+								{/* Right Face */}
+								<polygon points="0,20 60,-10 60,50 0,80" className="fill-zinc-100 dark:fill-zinc-900 stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" strokeLinejoin="round" />
+							</g>
+						</defs>
+						
+						{/* Wavy Strings */}
+						<path d="M 200 200 C 400 50, 700 200, 850 450" fill="none" className="stroke-zinc-300 dark:stroke-zinc-700" strokeWidth="2" strokeDasharray="8 8" />
+						<path d="M 850 450 C 900 700, 500 800, 300 850" fill="none" className="stroke-zinc-300 dark:stroke-zinc-700" strokeWidth="2" strokeDasharray="8 8" />
+						<path d="M 300 850 C 100 900, 50 400, 200 200" fill="none" className="stroke-zinc-300 dark:stroke-zinc-700" strokeWidth="2" strokeDasharray="8 8" />
+						
+						{/* Background connecting dots for flair */}
+						<circle cx="530" cy="180" r="4" className="fill-white dark:fill-black stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" />
+						<circle cx="750" cy="680" r="4" className="fill-white dark:fill-black stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" />
+						<circle cx="150" cy="550" r="4" className="fill-white dark:fill-black stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" />
+						
+						{/* 3D Boxes */}
+						<g transform="translate(200, 200)"><use href="#box3d" /></g>
+						<g transform="translate(850, 450)"><use href="#box3d" /></g>
+						<g transform="translate(300, 850)"><use href="#box3d" /></g>
+					</svg>
 				</div>
 				<Button variant="ghost" className="absolute top-7 left-5" asChild>
 					<a href="/">
