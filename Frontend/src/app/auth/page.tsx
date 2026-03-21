@@ -83,11 +83,13 @@ export default function AuthPage() {
 				throw new Error(data.message || 'Authentication failed');
 			}
 
-			// Typically you'd store tokens or user context here if not relying on HttpOnly cookies solely for access.
-			// Assuming Next.js app needs to redirect upon success.
+			if (data.accessToken) {
+				localStorage.setItem('accessToken', data.accessToken);
+			}
+			
 			showToast(isLogin ? "Welcome back!" : "Account created successfully!", 'success');
 			setTimeout(() => {
-				router.push('/dashboard');
+				router.push('/onboarding');
 			}, 1500);
 		} catch (err: any) {
 			showToast(err.message, 'error');
@@ -129,10 +131,6 @@ export default function AuthPage() {
 					aria-hidden
 					className="absolute inset-0 overflow-hidden flex items-center justify-center p-4 z-0 pointer-events-none"
 				>
-					{/* Ambient glow blobs */}
-					<div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-zinc-200/50 dark:bg-zinc-900/50 blur-3xl opacity-60 dark:opacity-80 mix-blend-multiply dark:mix-blend-screen" />
-					<div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-zinc-200/50 dark:bg-zinc-900/50 blur-3xl opacity-60 dark:opacity-80 mix-blend-multiply dark:mix-blend-screen" />
-
 					{/* 3D Workflow Boxes & Wavy Strings */}
 					<svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 dark:opacity-70" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1000 1000" aria-hidden="true">
 						<defs>
@@ -368,6 +366,7 @@ function FloatingPaths({ position }: { position: number }) {
 		</div>
 	);
 }
+
 
 const GoogleIcon = (props: React.ComponentProps<'svg'>) => (
 	<svg
