@@ -35,9 +35,26 @@ function Icon({ name, className = '' }: { name: string; className?: string }) {
 export default function LandingPage() {
   return (
     <div className="ln-page relative">
+      {/* 100% Hydration-Proof Native CSS Animations */}
+      <style>{`
+        @keyframes navDrop {
+          0% { opacity: 0; transform: translateY(-10px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes heroEntrance {
+          0% { opacity: 0; transform: translateY(15px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .anim-nav { opacity: 0; animation: navDrop 0.6s ease-out 0.1s forwards; }
+        .anim-hero { opacity: 0; animation: heroEntrance 0.6s ease-out forwards; }
+        .anim-delay-0 { animation-delay: 0.0s; }
+        .anim-delay-1 { animation-delay: 0.1s; }
+        .anim-delay-2 { animation-delay: 0.2s; }
+        .anim-delay-3 { animation-delay: 0.3s; }
+      `}</style>
       <div className="ln-grid-bg" />
       {/* ── NAV ── */}
-      <header className="ln-nav">
+      <header className="ln-nav anim-nav">
         <nav className="ln-nav-inner">
           <Link href="/" className="ln-brand">
             <Image src="/logo.svg" alt="Relay" width={32} height={32} className="ln-brand-logo" priority unoptimized />
@@ -66,19 +83,19 @@ export default function LandingPage() {
         <section className="ln-hero">
           <div className="ln-hero-grid relative z-10">
             <div className="ln-hero-content flex flex-col items-center text-center">
-              <span className=" font-sora text-sm tracking-widest font-bold mb-6 block uppercase border border-dotted border-white p-2">
+              <span className="anim-hero anim-delay-0 font-sora text-sm tracking-widest font-bold mb-6 block uppercase border border-dotted border-white p-2">
                 From backlog to done — without the chaos.
               </span>
-              <h1 className="ln-hero-title w-fit mx-auto ">
+              <h1 className="anim-hero anim-delay-1 ln-hero-title w-fit mx-auto ">
                 Industrial-grade Project & Issue <br /> management System.
               </h1>
 
-              <p className="ln-hero-sub">
+              <p className="anim-hero anim-delay-2 ln-hero-sub">
                 Multi-tenant architecture, workflow engine, realtime sync, and secure RBAC
                 — the foundation for production-ready task systems.
               </p>
 
-              <div className="ln-hero-actions">
+              <div className="anim-hero anim-delay-3 ln-hero-actions">
                 <Link href="/auth" className="ln-btn-neon">
                   Start Tracking
                 </Link> 
