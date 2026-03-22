@@ -21,9 +21,9 @@ const ptSerif = PT_Serif({
 export default function DashboardPage() {
     const { data, isLoading: analyticsLoading, error } = useWorkspaceAnalytics();
     const { projects, isLoading: projectsLoading } = useProjects();
-    
     const [statusFilter, setStatusFilter] = React.useState('ALL');
-    const [priorityFilter, setPriorityFilter] = React.useState('ALL');
+    const [projectFilter, setProjectFilter] = React.useState('ALL');
+    const [sortFilter, setSortFilter] = React.useState('RECENT');
 
     if (analyticsLoading || projectsLoading) {
         return (
@@ -67,10 +67,44 @@ export default function DashboardPage() {
     const dashMed = ((pctMedium || 0) / 100) * circumference;
     const dashLow = ((pctLow || 0) / 100) * circumference;
 
-    // Chart Scaling Calculations
-    const revenueChart = data?.revenueChart || [];
-    const maxRevenueRaw = Math.max(...revenueChart.map((m: any) => m.profit)) || 1;
-    const maxRevenue = Math.ceil(maxRevenueRaw / 4) * 4; // Round up to nearest nice divisible number
+    // Dynamic Chart Data mapping based on Filter
+    let displayChart: any[] = [];
+    if (projectFilter === 'ALL') {
+        displayChart = (data?.revenueChart || []).map((c: any) => ({ ...c, l1: "Assigned", l2: "Resolved", c1: "bg-zinc-900 dark:bg-zinc-100", c2: "bg-emerald-400/80 dark:bg-emerald-400/90 shadow-[0_0_15px_rgba(52,211,153,0.15)]", hex2: "bg-emerald-400" }));
+    } else {
+        const pIssues = (data?.allAssignedIssues || []).filter((is: any) => is.project?.id === projectFilter);
+        
+        let completed = 0; let onTrack = 0; let delayed = 0; let blocked = 0; let noDeadline = 0;
+        const today = new Date(); today.setHours(0,0,0,0);
+
+        pIssues.forEach((is: any) => {
+            const stName = (is.state?.name || "").toUpperCase();
+            if (["DONE", "RESOLVED", "COMPLETED"].includes(stName)) {
+                completed++;
+            } else if (["BLOCKED", "STUCK"].includes(stName)) {
+                blocked++;
+            } else {
+                if (!is.dueDate) {
+                    noDeadline++;
+                    onTrack++; // Consider unscheduled as implicitly on track
+                } else {
+                    const due = new Date(is.dueDate);
+                    if (due < today) delayed++;
+                    else onTrack++;
+                }
+            }
+        });
+
+        const totalAssigned = pIssues.length;
+        displayChart = [
+            { month: "Completion", profit: totalAssigned, loss: completed, l1: "Total", l2: "Done", c1: "bg-zinc-900 dark:bg-zinc-100", c2: "bg-emerald-400/80 dark:bg-emerald-400/90 shadow-[0_0_15px_rgba(52,211,153,0.15)]", hex2: "bg-emerald-400" },
+            { month: "Timeline", profit: onTrack, loss: delayed, l1: "On Time", l2: "Delayed", c1: "bg-zinc-900 dark:bg-zinc-100", c2: "bg-rose-500/80 dark:bg-rose-500/90 shadow-[0_0_15px_rgba(244,63,94,0.15)]", hex2: "bg-rose-500" },
+            { month: "Flow", profit: (totalAssigned - completed - blocked), loss: blocked, l1: "Active", l2: "Blocked", c1: "bg-zinc-900 dark:bg-zinc-100", c2: "bg-amber-400/80 dark:bg-amber-400/90 shadow-[0_0_15px_rgba(251,191,36,0.15)]", hex2: "bg-amber-400" }
+        ].filter(c => c.profit > 0 || c.loss > 0); // Purge elements that mathematically contain 0 workload globally explicitly handling strict dynamic UI arrays
+    }
+
+    const maxRevenueRaw = Math.max(...displayChart.map((m: any) => Math.max(m.profit, m.loss))) || 1;
+    const maxRevenue = Math.max(Math.ceil(maxRevenueRaw / 2) * 2, 4); // Always at least 4 intervals
 
     return (
         <div className={`p-8 w-full max-w-[1600px] mx-auto space-y-6 font-sans ${firaSans.className}`}>
@@ -126,30 +160,41 @@ export default function DashboardPage() {
                 <div className="xl:col-span-5 bg-white dark:bg-zinc-950 shadow-sm rounded-xl p-6 flex flex-col min-h-[300px]">
                     <div className="flex justify-between items-start mb-2">
                         <div>
-                            <h2 className="text-[14px] text-zinc-500 dark:text-zinc-400 font-medium mb-1.5">Issue Momentum</h2>
+                            <h2 className="text-[14px] text-zinc-500 dark:text-zinc-400 font-medium mb-1.5">Project Performance</h2>
                             <div className="flex items-center gap-3 mt-1">
-                                <span className={`text-[26px] font-semibold text-zinc-900 dark:text-white ${ptSerif.className}`}>{totalIssues} Total</span>
+                                <span className={`text-[26px] font-semibold text-zinc-900 dark:text-white ${ptSerif.className}`}>{projectFilter === 'ALL' ? totalProjects : '1'} {projectFilter === 'ALL' ? 'Active' : 'Project'}</span>
                                 <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md">
-                                    <ArrowUpRight size={12} strokeWidth={3} />
-                                    Active
+                                    <ArrowRight size={12} strokeWidth={3} />
+                                    {projectFilter === 'ALL' ? 'Projects' : 'Isolated'}
                                 </span>
                             </div>
                         </div>
-                        <button className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 text-[11px] font-medium rounded-lg hover:bg-[#323235] transition-colors border border-transparent mt-1">
-                            Current
-                            <svg width="8" height="5" viewBox="0 0 10 6" fill="none" className="text-zinc-500 ml-1">
-                                <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </button>
+                        
+                        <div className="mt-1">
+                            <CustomDropdown 
+                                value={projectFilter} 
+                                onChange={setProjectFilter} 
+                                options={[
+                                    { value: "ALL", label: "All Projects", icon: "❖" },
+                                    ...(data?.activeProjectsList || []).map((p: any) => ({ value: p.id, label: (p.name.length > 12 ? p.name.substring(0,10)+'..' : p.name), icon: "●" }))
+                                ]}
+                            />
+                        </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-5 text-[11px] text-zinc-500 dark:text-zinc-400 mb-6 font-medium">
-                        <div className="flex items-center gap-2 relative z-20">
-                            <span className="w-2 h-2 rounded-[2px] bg-zinc-900 dark:bg-zinc-100" /> Total Created
-                        </div>
-                        <div className="flex items-center gap-2 relative z-20">
-                            <span className="w-2 h-2 rounded-[2px] bg-zinc-300 dark:bg-zinc-700/80" /> Pending
-                        </div>
+                    <div className="flex items-center justify-end gap-5 text-[11px] text-zinc-500 dark:text-zinc-400 mb-6 font-medium h-[16px]">
+                        {projectFilter === 'ALL' ? (
+                            <>
+                                <div className="flex items-center gap-2 relative z-20">
+                                    <span className="w-2 h-2 rounded-[2px] bg-zinc-900 dark:bg-zinc-100" /> Assigned
+                                </div>
+                                <div className="flex items-center gap-2 relative z-20">
+                                    <span className="w-2 h-2 rounded-[2px] bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.3)]" /> Resolved
+                                </div>
+                            </>
+                        ) : (
+                            <span className="text-zinc-400">Viewing Isolated Efficiency & Delays</span>
+                        )}
                     </div>
 
                     {/* Chart Playground */}
@@ -168,11 +213,17 @@ export default function DashboardPage() {
                         
                         {/* Dynamic Bars array */}
                         <div className="relative w-[95%] h-full flex items-end justify-between pb-6 pl-4 z-10 opacity-100 mix-blend-normal">
-                            {revenueChart.map((m: any, idx: number) => {
-                                const pPct = Math.max((m.profit / maxRevenue) * 100, 2);
-                                const lPct = Math.max((m.loss / maxRevenue) * 100, 2);
-                                return <ChartBar key={idx} month={m.month} h1={`${pPct}%`} h2={`${lPct}%`} profit={m.profit} loss={m.loss} />
-                            })}
+                            {displayChart.length === 0 ? (
+                                <div className="absolute inset-0 flex items-center justify-center -translate-y-[10px]">
+                                    <span className="text-zinc-500 text-[11.5px] font-medium tracking-wide">No active workload data parameters detected.</span>
+                                </div>
+                            ) : (
+                                displayChart.map((m: any, idx: number) => {
+                                    const pPct = Math.max((m.profit / maxRevenue) * 100, 2);
+                                    const lPct = Math.max((m.loss / maxRevenue) * 100, 2);
+                                    return <ChartBar key={idx} month={m.month} h1={`${pPct}%`} h2={`${lPct}%`} profit={m.profit} loss={m.loss} label1={m.l1} label2={m.l2} color1={m.c1} color2={m.c2} hex2={m.hex2} />
+                                })
+                            )}
                         </div>
                     </div>
                 </div>
@@ -183,20 +234,30 @@ export default function DashboardPage() {
                 
                 {/* Recent Activity (Left 8 cols) */}
                 <div className="xl:col-span-8 bg-white dark:bg-zinc-950 shadow-sm rounded-md flex flex-col overflow-hidden h-[400px]">
-                    <div className="flex items-center justify-between p-6 pb-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 pb-1 gap-4">
                         <h2 className="text-[18px] font-semibold text-zinc-100">Your Issues</h2>
-                        <CustomDropdown 
-                            value={statusFilter} 
-                            onChange={setStatusFilter} 
-                            options={[
-                                { value: "ALL", label: "All States", icon: "•" },
-                                { value: "OPEN", label: "Open", icon: "○" },
-                                { value: "IN_PROGRESS", label: "In Progress", icon: "○" },
-                                { value: "REVIEW", label: "Review", icon: "○" },
-                                { value: "BLOCKED", label: "Blocked", icon: "○" },
-                                { value: "DONE", label: "Resolved", icon: "✓" }
-                            ]}
-                        />
+                        <div className="flex items-center gap-3">
+                            <CustomDropdown 
+                                value={sortFilter} 
+                                onChange={setSortFilter} 
+                                options={[
+                                    { value: "RECENT", label: "Recent", icon: "" },
+                                    { value: "DEADLINE_NEAR", label: "Deadline", icon: "" }
+                                ]}
+                            />
+                            <CustomDropdown 
+                                value={statusFilter} 
+                                onChange={setStatusFilter} 
+                                options={[
+                                    { value: "ALL", label: "All States", icon: "•" },
+                                    { value: "OPEN", label: "Open", icon: "○" },
+                                    { value: "IN_PROGRESS", label: "In Progress", icon: "○" },
+                                    { value: "REVIEW", label: "Review", icon: "○" },
+                                    { value: "BLOCKED", label: "Blocked", icon: "○" },
+                                    { value: "DONE", label: "Resolved", icon: "✓" }
+                                ]}
+                            />
+                        </div>
                     </div>
 
                     <div className="flex-1 overflow-x-auto overflow-y-auto px-1 custom-scrollbar">
@@ -206,13 +267,13 @@ export default function DashboardPage() {
                                     <th className="px-6 py-4 text-[11px] font-medium text-zinc-500 whitespace-nowrap bg-white dark:bg-zinc-950">Issue Details</th>
                                     <th className="px-6 py-4 text-[11px] font-medium text-zinc-500 whitespace-nowrap bg-white dark:bg-zinc-950">State</th>
                                     <th className="px-6 py-4 text-[11px] font-medium text-zinc-500 whitespace-nowrap bg-white dark:bg-zinc-950">Identifier</th>
-                                    <th className="px-6 py-4 text-[11px] font-medium text-zinc-500 whitespace-nowrap bg-white dark:bg-zinc-950">Last Updated</th>
+                                    <th className="px-6 py-4 text-[11px] font-medium text-zinc-500 whitespace-nowrap bg-white dark:bg-zinc-950">Deadline</th>
                                     <th className="px-6 py-4 text-[11px] font-medium text-zinc-500 whitespace-nowrap text-right bg-white dark:bg-zinc-950">Priority</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-800/40">
-                                {data?.recentAssignedIssues?.length > 0 ? (() => {
-                                    const filtered = data.recentAssignedIssues.filter((issue: any) => {
+                                {data?.allAssignedIssues?.length > 0 ? (() => {
+                                    let processed = [...data.allAssignedIssues].filter((issue: any) => {
                                         if (statusFilter === 'ALL') return true;
                                         const stateUpper = (issue.state?.name || "Pending").toUpperCase();
                                         
@@ -224,17 +285,30 @@ export default function DashboardPage() {
                                         return true;
                                     });
 
-                                    if (filtered.length === 0) {
+                                    if (sortFilter === 'DEADLINE_NEAR') {
+                                        processed.sort((a: any, b: any) => {
+                                            if (!a.dueDate && !b.dueDate) return 0;
+                                            if (!a.dueDate) return 1;
+                                            if (!b.dueDate) return -1;
+                                            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                                        });
+                                    } else {
+                                        processed.sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+                                    }
+
+                                    processed = processed.slice(0, 30); // Limit rendered table length
+
+                                    if (processed.length === 0) {
                                         return (
                                             <tr>
                                                 <td colSpan={5} className="px-6 py-12 text-center text-[12px] font-medium text-zinc-500">
-                                                    No issues matching selected state.
+                                                    No issues matching selected criteria.
                                                 </td>
                                             </tr>
                                         )
                                     }
 
-                                    return filtered.map((issue: any) => {
+                                    return processed.map((issue: any) => {
                                         const stateName = issue.state?.name || "Pending";
                                         const snUpper = stateName.toUpperCase();
                                         
@@ -246,6 +320,16 @@ export default function DashboardPage() {
                                         } else if (["IN PROGRESS", "DOING", "IN-PROGRESS", "IN_PROGRESS", "ACTIVE"].includes(snUpper)) {
                                             statusColor = "text-amber-400 bg-transparent border border-amber-500/20";
                                         }
+
+                                        let displayDate = "No Deadline";
+                                        let isOverdue = false;
+                                        if (issue.dueDate) {
+                                            const dDate = new Date(issue.dueDate);
+                                            displayDate = dDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                                            if (dDate < new Date() && !["DONE", "RESOLVED", "COMPLETED"].includes(snUpper)) {
+                                                isOverdue = true;
+                                            }
+                                        }
                                         
                                         return (
                                             <ActivityRow 
@@ -256,7 +340,7 @@ export default function DashboardPage() {
                                                 status={stateName} 
                                                 statusColor={statusColor}
                                                 id={issue.key || `#${issue.id.slice(0,6)}`} 
-                                                retained={new Date(issue.updatedAt).toLocaleDateString()} 
+                                                retained={isOverdue ? <span className="text-rose-500 font-semibold">{displayDate}</span> : displayDate} 
                                                 amount={issue.priority || "MEDIUM"} 
                                             />
                                         )
@@ -356,25 +440,25 @@ function MetricCard({ title, value, pct, trendUp, desc, iconSrc }: any) {
     );
 }
 
-function ChartBar({ month, h1, h2, profit, loss }: { month: string, h1: string, h2: string, profit: number, loss: number }) {
+function ChartBar({ month, h1, h2, profit, loss, label1 = "Assigned", label2 = "Resolved", color1 = "bg-zinc-900 dark:bg-zinc-100", color2 = "bg-emerald-400/80 dark:bg-emerald-400/90 shadow-[0_0_15px_rgba(52,211,153,0.15)]", hex2 = "bg-emerald-400" }: any) {
     return (
         <div className="flex flex-col items-center gap-2.5 w-full group relative h-full justify-end z-[50]">
             <div className="w-full flex items-end justify-center gap-[4px] sm:gap-[6px] h-[calc(100%-1.5rem)] relative cursor-pointer z-50">
                 {/* Tooltip Overlay */}
                 <div className="absolute -top-12 z-[100] flex flex-col items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 translate-y-1 group-hover:translate-y-0">
                     <div className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10.5px] px-2.5 py-1.5 rounded-[6px] whitespace-nowrap font-medium flex flex-col gap-[3px] shadow-xl relative min-w-max">
-                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-[2px] bg-white dark:bg-zinc-900" /> {profit} Created</span>
-                        <span className="flex items-center gap-1.5 text-zinc-300 dark:text-zinc-600"><span className="w-1.5 h-1.5 rounded-[2px] bg-zinc-500 dark:bg-zinc-400" /> {loss} Pending</span>
+                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-[2px] bg-white dark:bg-zinc-900" /> {profit} {label1}</span>
+                        <span className="flex items-center gap-1.5 text-zinc-300 dark:text-zinc-600"><span className={`w-1.5 h-1.5 rounded-[2px] ${hex2}`} /> {loss} {label2}</span>
                         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 dark:bg-white rotate-45" />
                     </div>
                 </div>
 
-                {/* Main Bar (Profit -> Total Created) */}
-                <div style={{ height: h1 }} className={`w-[14px] sm:w-[18px] bg-zinc-900 dark:bg-zinc-100 rounded-t-[4px] opacity-90 group-hover:opacity-100 transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] origin-bottom z-30`} />
-                {/* Secondary Bar (Loss -> Pending) */}
-                <div style={{ height: h2 }} className={`w-[14px] sm:w-[18px] bg-zinc-300 dark:bg-zinc-700/80 rounded-t-[4px] opacity-[0.85] group-hover:opacity-100 group-hover:bg-rose-400 dark:group-hover:bg-rose-500 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] origin-bottom z-30`} />
+                {/* Main Bar */}
+                <div style={{ height: h1 }} className={`w-[14px] sm:w-[18px] ${color1} rounded-t-[4px] opacity-90 group-hover:opacity-100 transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] origin-bottom z-30`} />
+                {/* Secondary Bar */}
+                <div style={{ height: h2 }} className={`w-[14px] sm:w-[18px] ${color2} rounded-t-[4px] opacity-[0.9] group-hover:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] origin-bottom z-30`} />
             </div>
-            <span className="text-[11px] text-zinc-500 font-medium group-hover:text-zinc-900 dark:group-hover:text-white transition-colors cursor-pointer">{month}</span>
+            <span className="text-[11px] text-zinc-500 font-medium group-hover:text-zinc-900 dark:group-hover:text-white transition-colors cursor-pointer whitespace-nowrap">{month}</span>
         </div>
     )
 }

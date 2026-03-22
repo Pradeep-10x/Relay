@@ -75,26 +75,26 @@ export function useWorkspaceAnalytics() {
                 allIssues.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
                 recentAssignedIssues = allIssues.slice(0, 30);
 
-                // Re-establish Revenue Array logic tracing 6 trailing creation months dynamically
-                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                
-                for (let i = 5; i >= 0; i--) {
-                    let d = new Date();
-                    d.setMonth(d.getMonth() - i);
-                    
-                    const mIssues = allIssues.filter(is => {
-                        const dCreate = new Date(is.createdAt);
-                        return dCreate.getFullYear() === d.getFullYear() && dCreate.getMonth() === d.getMonth();
-                    });
-                    
-                    const profit = mIssues.length;
-                    const loss = mIssues.filter(is => {
-                        const stName = is.state?.name?.toUpperCase() || "";
-                        return !["DONE", "RESOLVED", "COMPLETED"].includes(stName);
+                const projectBuckets = activeProjects.map((p: any) => {
+                    const myProjectIssues = (p.Issues || []).filter((is: any) => is.assigneeId === userId && !is.isDeleted);
+                    const totalAssigned = myProjectIssues.length;
+                    const doneAssigned = myProjectIssues.filter((is: any) => {
+                        const stName = (is.state?.name || "").toUpperCase();
+                        return ["DONE", "RESOLVED", "COMPLETED"].includes(stName);
                     }).length;
 
-                    revenueChart.push({ month: months[d.getMonth()], profit, loss });
-                }
+                    let label = p.name || p.key || "Unknown";
+                    if (label.length > 8) label = label.substring(0, 6) + '..';
+
+                    return { month: label, profit: totalAssigned, loss: doneAssigned };
+                });
+
+                // Dynamically purge rigid elements completely to only operate on available workload mapping
+                const populatedBuckets = projectBuckets.filter((b: any) => b.profit > 0 || b.loss > 0);
+                populatedBuckets.sort((a, b) => b.profit - a.profit);
+                const chartDataSliced = populatedBuckets.slice(0, 8);
+
+                revenueChart.push(...chartDataSliced);
 
                 setData({
                     totalProjects: activeProjects.length,
@@ -103,7 +103,11 @@ export function useWorkspaceAnalytics() {
                     resolvedIssues,
                     tasksPerPriority,
                     revenueChart,
-                    recentAssignedIssues
+                    recentAssignedIssues,
+                    allAssignedIssues: allIssues,
+                    activeProjectsList: activeProjects.filter((p: any) => {
+                        return (p.Issues || []).some((is: any) => is.assigneeId === userId && !is.isDeleted);
+                    }).map((p: any) => ({ id: p.id, name: p.name }))
                 });
                 
                 // Clear obsolete error tags
