@@ -24,5 +24,20 @@ export function useUser() {
         fetchUser();
     }, []);
 
-    return { user, isLoading };
+    const refresh = async () => {
+        setIsLoading(true);
+        try {
+            const res = await apiFetch(`/api/v1/user/me`);
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data.user || data);
+            }
+        } catch (err: any) {
+            console.error("Failed to fetch user profile", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { user, isLoading, refresh };
 }

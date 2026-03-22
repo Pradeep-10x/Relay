@@ -58,7 +58,7 @@ export function Navbar() {
                 
                 {/* Search Dropdown */}
                 {isSearchOpen && searchTerm && (
-                    <div className="absolute top-full left-0 mt-3 w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg py-2 z-50 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <div className="absolute top-full left-0 mt-3 w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-lg py-2 z-50 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar">
                         {filteredProjects.length > 0 ? (
                             filteredProjects.map((project: any) => (
                                 <button

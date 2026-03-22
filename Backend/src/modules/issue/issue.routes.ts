@@ -8,7 +8,8 @@ import {
   removeDependency,
   getIssueActivity,
   getProjectBoard,
-  getProjectAnalytics
+  getProjectAnalytics,
+  getIssueById
 } from "./issue.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 
@@ -244,5 +245,25 @@ router.get(
   authMiddleware,
   getProjectAnalytics
 );
+
+/**
+ * @swagger
+ * /issues/{issueId}:
+ *   get:
+ *     summary: Get issue details
+ *     tags: [Issues]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: issueId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Issue details fetched
+ */
+router.get("/issues/:issueId", authMiddleware, getIssueById);
 
 export default router;

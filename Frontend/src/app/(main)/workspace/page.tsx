@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import { ArrowUpRight, ArrowRight, ChevronLeft, ChevronRight, Users, FolderKanban, CheckCircle2, BarChart3 } from 'lucide-react';
 import { Fira_Sans, PT_Serif } from 'next/font/google';
+import { useRouter } from 'next/navigation';
 import { useWorkspaceOverview } from '@/hooks/useWorkspaceOverview';
 
 const firaSans = Fira_Sans({
@@ -19,6 +20,7 @@ const ptSerif = PT_Serif({
 
 export default function WorkspacePage() {
     const { data, isLoading, error } = useWorkspaceOverview();
+    const router = useRouter();
     const scrollRef = useRef<HTMLDivElement>(null);
 
     if (isLoading) {
@@ -76,7 +78,7 @@ export default function WorkspacePage() {
                             {data.memberAvatars.map((m, i) => (
                                 <img
                                     key={i}
-                                    src={m.avatar}
+                                    src={m.avatar || '/4092564-about-mobile-ui-profile-ui-user-website_114033.svg'}
                                     alt={m.name}
                                     title={m.name}
                                     className="w-7 h-7 rounded-full border-2 border-white dark:border-zinc-950 object-cover bg-zinc-200 dark:bg-zinc-800"
@@ -134,7 +136,7 @@ export default function WorkspacePage() {
 
                 <div ref={scrollRef} className="flex gap-5 overflow-x-auto pb-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-800">
                     {data.projects.map(project => (
-                        <ProjectCard key={project.id} project={project} ptSerif={ptSerif.className} />
+                        <ProjectCard key={project.id} project={project} ptSerif={ptSerif.className} onClick={() => router.push(`/project/${project.id}`)} />
                     ))}
                     {data.projects.length === 0 && (
                         <div className="w-full py-12 flex items-center justify-center text-zinc-600 text-sm">No projects in this workspace yet.</div>
@@ -146,7 +148,7 @@ export default function WorkspacePage() {
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
 
                 {/* Team Workload Table */}
-                <div className="xl:col-span-8 bg-white dark:bg-zinc-950 shadow-sm rounded-xl overflow-hidden border border-transparent dark:border-zinc-800/40">
+                <div className="xl:col-span-8 bg-white dark:bg-zinc-950 shadow-sm rounded-md overflow-hidden border border-transparent dark:border-zinc-800/40">
                     <div className="flex items-center justify-between p-6 pb-4">
                         <div>
                             <h2 className="text-[17px] font-semibold text-zinc-100">Team Workload</h2>
@@ -179,7 +181,7 @@ export default function WorkspacePage() {
                 </div>
 
                 {/* Issue Velocity Chart */}
-                <div className="xl:col-span-4 bg-white dark:bg-zinc-950 shadow-sm rounded-xl p-6 border border-transparent dark:border-zinc-800/40 flex flex-col">
+                <div className="xl:col-span-4 bg-white dark:bg-zinc-950 shadow-sm rounded-md p-6 border border-transparent dark:border-zinc-800/40 flex flex-col">
                     <h2 className="text-[15px] font-semibold text-zinc-100 mb-1">Issue Velocity</h2>
                     <p className="text-[11px] text-zinc-500 mb-6">Created vs Resolved per project</p>
 
@@ -206,7 +208,7 @@ export default function WorkspacePage() {
 
 function StatCard({ icon, label, value, badge, badgeColor, borderColor, sub, extra }: any) {
     return (
-        <div className={`bg-white dark:bg-zinc-950 rounded-xl p-5 shadow-sm border border-transparent dark:border-zinc-800/40 border-l-[3px] ${borderColor} flex flex-col justify-between group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors`}>
+        <div className={`bg-white dark:bg-zinc-950 rounded-md p-5 shadow-sm border border-transparent dark:border-zinc-800/40 border-l-[3px] ${borderColor} flex flex-col justify-between group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors`}>
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <span className="text-zinc-500 dark:text-zinc-500">{icon}</span>
@@ -223,11 +225,11 @@ function StatCard({ icon, label, value, badge, badgeColor, borderColor, sub, ext
     );
 }
 
-function ProjectCard({ project, ptSerif }: { project: any, ptSerif: string }) {
+function ProjectCard({ project, ptSerif, onClick }: { project: any, ptSerif: string, onClick?: () => void }) {
     const progressColor = project.progress >= 80 ? 'bg-emerald-500' : project.progress >= 40 ? 'bg-sky-500' : 'bg-amber-500';
 
     return (
-        <div className="min-w-[260px] max-w-[300px] bg-white dark:bg-zinc-950 rounded-xl p-5 shadow-sm border border-zinc-200/60 dark:border-zinc-800/40 flex-shrink-0 group hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+        <div onClick={onClick} className="min-w-[260px] cursor-pointer max-w-[300px] bg-white dark:bg-zinc-950 rounded-md p-5 shadow-sm border border-zinc-200/60 dark:border-zinc-800/40 flex-shrink-0 group hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
             <div className="flex items-start justify-between mb-3">
                 <div>
                     <h3 className="text-[14px] font-semibold text-zinc-900 dark:text-white leading-snug">{project.name}</h3>
@@ -252,11 +254,7 @@ function MemberRow({ member, maxAssigned, idx }: { member: any; maxAssigned: num
     const barWidth = maxAssigned > 0 ? (member.assigned / maxAssigned) * 100 : 0;
     const resolvedWidth = member.assigned > 0 ? (member.resolved / member.assigned) * 100 : 0;
 
-    const avatar = member.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${member.name}`;
-
-    // Generate a unique color per member row — cycling through a palette
-    const palette = ['bg-sky-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-teal-500'];
-    const dotColor = palette[idx % palette.length];
+    const avatar = member.avatar || `/4092564-about-mobile-ui-profile-ui-user-website_114033.svg`;
 
     const pctColor = member.pct >= 50 ? 'text-emerald-400' : member.pct >= 20 ? 'text-amber-400' : 'text-rose-400';
 
@@ -264,7 +262,6 @@ function MemberRow({ member, maxAssigned, idx }: { member: any; maxAssigned: num
         <tr className="group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
             <td className="px-6 py-3.5">
                 <div className="flex items-center gap-3">
-                    <div className={`w-[8px] h-[8px] rounded-full ${dotColor} shrink-0`} />
                     <img src={avatar} alt={member.name} className="w-7 h-7 rounded-full object-cover bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 shrink-0" />
                     <span className="text-[13px] font-medium text-zinc-800 dark:text-zinc-200 truncate max-w-[120px]">{member.name}</span>
                 </div>

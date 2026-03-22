@@ -134,6 +134,7 @@ export const getWorkspaceProjectsService = async (userId: string, workspaceId: s
         Issues: {
           include: { 
             state: true,
+            assignee: { select: { id: true, name: true, avatar: true } },
             project: { select: { name: true, key: true } }
           }
         },
@@ -278,5 +279,21 @@ export const addMemberToProjectService = async (userId: string, projectId: strin
     });
 }
 
+export const getProjectMembersService = async (userId: string, projectId: string) => {
+  const membership = await prisma.projectMember.findUnique({
+    where: { userId_projectId: { userId, projectId } },
+  });
+  if (!membership) {
+    throw new ApiError(403, "You are not a member of this project");
+  }
 
-      
+  return prisma.projectMember.findMany({
+    where: { projectId },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, username: true, avatar: true },
+      },
+    },
+    orderBy: { role: 'asc' }, // usually puts OWNER first
+  });
+};

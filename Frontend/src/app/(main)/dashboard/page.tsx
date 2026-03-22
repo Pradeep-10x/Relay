@@ -3,8 +3,10 @@
 import React from 'react';
 import { Filter, Download, MoreHorizontal, ArrowUpRight, ArrowDownRight, ArrowRight } from 'lucide-react';
 import { Fira_Sans, PT_Serif } from 'next/font/google';
+import { useRouter } from 'next/navigation';
 import { useWorkspaceAnalytics } from '@/hooks/useWorkspaceAnalytics';
 import { useProjects } from '@/hooks/useProjects';
+import { IssueSlideOver } from '@/components/IssueSlideOver';
 
 const firaSans = Fira_Sans({ 
     weight: ['400', '500', '600', '700'],
@@ -21,9 +23,11 @@ const ptSerif = PT_Serif({
 export default function DashboardPage() {
     const { data, isLoading: analyticsLoading, error } = useWorkspaceAnalytics();
     const { projects, isLoading: projectsLoading } = useProjects();
+    const router = useRouter();
     const [statusFilter, setStatusFilter] = React.useState('ALL');
     const [projectFilter, setProjectFilter] = React.useState('ALL');
     const [sortFilter, setSortFilter] = React.useState('RECENT');
+    const [selectedIssueId, setSelectedIssueId] = React.useState<string | null>(null);
 
     if (analyticsLoading || projectsLoading) {
         return (
@@ -157,7 +161,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Revenue Chart (Right 5 cols) */}
-                <div className="xl:col-span-5 bg-white dark:bg-zinc-950 shadow-sm rounded-xl p-6 flex flex-col min-h-[300px]">
+                <div className="xl:col-span-5 bg-white dark:bg-zinc-950 shadow-sm rounded-md p-6 flex flex-col min-h-[300px]">
                     <div className="flex justify-between items-start mb-2">
                         <div>
                             <h2 className="text-[14px] text-zinc-500 dark:text-zinc-400 font-medium mb-1.5">Project Performance</h2>
@@ -342,6 +346,7 @@ export default function DashboardPage() {
                                                 id={issue.key || `#${issue.id.slice(0,6)}`} 
                                                 retained={isOverdue ? <span className="text-rose-500 font-semibold">{displayDate}</span> : displayDate} 
                                                 amount={issue.priority || "MEDIUM"} 
+                                                onClick={() => setSelectedIssueId(issue.id)}
                                             />
                                         )
                                     });
@@ -358,7 +363,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Traffic Channel -> Priority Distribution (Right 4 cols) */}
-                <div className="xl:col-span-4 bg-white dark:bg-zinc-950 shadow-sm rounded-xl p-7 flex flex-col h-[400px]">
+                <div className="xl:col-span-4 bg-white dark:bg-zinc-950 shadow-sm rounded-md p-7 flex flex-col h-[400px]">
                     <div className="flex items-center justify-between mb-8">
                         <h2 className="text-[15px] font-semibold text-zinc-100">Workload Priority</h2>
                         
@@ -395,6 +400,15 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Global Issue Viewer Node */}
+            {selectedIssueId && (
+                <IssueSlideOver 
+                    issueId={selectedIssueId} 
+                    onClose={() => setSelectedIssueId(null)} 
+                    availableStates={data?.workflowStates || []}
+                />
+            )}
         </div>
     );
 }
@@ -403,7 +417,7 @@ export default function DashboardPage() {
 
 function MetricCard({ title, value, pct, trendUp, desc, iconSrc }: any) {
     return (
-        <div className={`group bg-white dark:bg-zinc-950 shadow-sm rounded-xl p-5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors border border-transparent hover:border-zinc-200 dark:border-zinc-800 flex flex-col justify-between`}>
+        <div className={`group bg-white dark:bg-zinc-950 shadow-sm rounded-md p-5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors border border-transparent hover:border-zinc-200 dark:border-zinc-800 flex flex-col justify-between`}>
             {/* Top Row */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
@@ -495,7 +509,7 @@ function CustomDropdown({ value, onChange, options }: any) {
                 </svg>
             </button>
             <div 
-                className={`absolute top-full right-0 mt-2 w-36 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-xl shadow-xl shadow-zinc-200/50 dark:shadow-black/40 p-1 flex items-center flex-col z-[100] transition-all duration-200 origin-top overflow-hidden select-none ${open ? 'opacity-100 scale-y-100 pointer-events-auto' : 'opacity-0 scale-y-95 pointer-events-none'}`}
+                className={`absolute top-full right-0 mt-2 w-36 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-md shadow-xl shadow-zinc-200/50 dark:shadow-black/40 p-1 flex items-center flex-col z-[100] transition-all duration-200 origin-top overflow-hidden select-none ${open ? 'opacity-100 scale-y-100 pointer-events-auto' : 'opacity-0 scale-y-95 pointer-events-none'}`}
             >
                 {options.map((opt: any) => (
                     <button 
@@ -512,9 +526,9 @@ function CustomDropdown({ value, onChange, options }: any) {
     );
 }
 
-function ActivityRow({ name, email, status, statusColor, id, retained, amount }: any) {
+function ActivityRow({ name, email, status, statusColor, id, retained, amount, onClick }: any) {
     return (
-        <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors group relative cursor-pointer">
+        <tr onClick={onClick} className="hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors group relative cursor-pointer">
             <td className="px-6 py-[18px]">
                 <div className="flex items-center gap-3.5">
                     <div className="flex flex-col gap-0.5">

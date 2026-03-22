@@ -701,3 +701,39 @@ export const getUserIssuesService = async (
   });
   return issues;
 }
+
+export const getIssueByIdService = async (issueId: string, userId: string) => {
+  const issue = await prisma.issue.findUnique({
+    where: { id: issueId },
+    include: {
+      assignee: { select: { id: true, name: true, avatar: true } },
+      reporter: { select: { id: true, name: true, avatar: true } },
+      state: true,
+      project: { select: { id: true, key: true, name: true } },
+      blocking: { include: { blocked: { select: { id: true, key: true, title: true, state: true } } } },
+      blockedBy: { include: { blocker: { select: { id: true, key: true, title: true, state: true } } } },
+      issueComments: {
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+      activities: {
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+        orderBy: { createdAt: "desc" },
+      }
+    }
+  });
+
+  if (!issue) {
+    throw new ApiError(404, "Issue not found");
+  }
+  
+  const membership = await prisma.projectMember.findUnique({
+    where: { userId_projectId: { userId, projectId: issue.projectId } },
+  });
+  
+  if (!membership) {
+    throw new ApiError(403, "Not a project member");
+  }
+  
+  return issue;
+};

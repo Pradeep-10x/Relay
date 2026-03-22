@@ -3,7 +3,8 @@ import {
   createProjectService,
   getWorkspaceProjectsService,
   deleteProjectService,
-  addMemberToProjectService
+  addMemberToProjectService,
+  getProjectMembersService
 } from "./project.service.js";
 import {
   createProjectSchema,
@@ -64,4 +65,15 @@ export const addProjectMember = async (
   );
 
   res.status(201).json(member);
+};
+
+export const getProjectMembers = async (req: Request, res: Response) => {
+  const { projectId } = projectParamsSchema.parse(req.params);
+
+  const members = await getProjectMembersService(
+    (req as any).user.id,
+    projectId as string
+  );
+
+  res.json(members);
 };

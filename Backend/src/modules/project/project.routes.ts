@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
-import { createProject, getWorkspaceProjects, deleteProject, addProjectMember } from "./project.controller.js";
+import { createProject, getWorkspaceProjects, deleteProject, addProjectMember, getProjectMembers } from "./project.controller.js";
 
 const router = Router();
 
@@ -118,5 +118,25 @@ router.delete("/:projectId/delete", authMiddleware, deleteProject);
  *         description: Member added successfully
  */
 router.post("/:projectId/add-member", authMiddleware, addProjectMember);
+
+/**
+ * @swagger
+ * /project/{projectId}/members:
+ *   get:
+ *     summary: Get project members
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Members retrieved successfully
+ */
+router.get("/:projectId/members", authMiddleware, getProjectMembers);
 
 export default router;

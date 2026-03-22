@@ -8,7 +8,8 @@ import {
   getIssueActivityService,
   updateIssueService,
   getProjectBoardService,
-  getProjectAnalyticsService
+  getProjectAnalyticsService,
+  getIssueByIdService
 } from "./issue.services.js";
 import { issueParamsSchema, createIssueSchema, updateIssueStateSchema, updateIssueSchema, addDependencySchema } from "./issue.schema.js";
 import { IssuePriority } from "@prisma/client";
@@ -126,3 +127,11 @@ export const getProjectAnalytics = async (req: Request, res: Response) => {
 
   res.json(analytics);
 }
+
+export const getIssueById = async (req: Request, res: Response) => {
+  const { issueId } = issueParamsSchema.parse(req.params);
+
+  const issue = await getIssueByIdService(issueId as string, (req as any).user.id);
+
+  res.json(issue);
+};
