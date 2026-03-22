@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Fira_Sans, PT_Serif } from 'next/font/google';
-import { KanbanSquare, MoreHorizontal, Plus } from 'lucide-react';
+import { KanbanSquare, MoreHorizontal, Plus, Calendar, Filter } from 'lucide-react';
 import { useKanban } from '@/hooks/useKanban';
 import { useParams } from 'next/navigation';
 import { IssueSlideOver } from '@/components/IssueSlideOver';
@@ -43,6 +43,57 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    // Filter states
+    const [filterAssignee, setFilterAssignee] = useState<string>('ALL');
+    const [filterDate, setFilterDate] = useState<'ALL'|'OVERDUE'|'TODAY'|'UPCOMING'>('ALL');
+
+    // Extract unique assignees from loaded board
+    const uniqueAssignees = useMemo(() => {
+        if (!data) return [];
+        const map = new Map();
+        data.states.forEach(s => {
+            const arr = data.board[s.name] || [];
+            arr.forEach((i: any) => {
+                if (i.assignee) map.set(i.assignee.id, i.assignee);
+            });
+        });
+        return Array.from(map.values());
+    }, [data]);
+
+    // Compute filtered board
+    const filteredBoard = useMemo(() => {
+        if (!data) return {};
+        const filtered: Record<string, any[]> = {};
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+
+        data.states.forEach(state => {
+            let issues = data.board[state.name] || [];
+            
+            if (filterAssignee !== 'ALL') {
+                if (filterAssignee === 'UNASSIGNED') {
+                    issues = issues.filter((i: any) => !i.assignee);
+                } else {
+                    issues = issues.filter((i: any) => i.assignee?.id === filterAssignee);
+                }
+            }
+
+            if (filterDate !== 'ALL') {
+                issues = issues.filter((i: any) => {
+                    if (!i.dueDate) return false;
+                    const due = new Date(i.dueDate);
+                    const dueStr = due.toISOString().split('T')[0];
+                    if (filterDate === 'OVERDUE') return due < now && dueStr !== todayStr;
+                    if (filterDate === 'TODAY') return dueStr === todayStr;
+                    if (filterDate === 'UPCOMING') return due > now && dueStr !== todayStr;
+                    return true;
+                });
+            }
+            filtered[state.name] = issues;
+        });
+        return filtered;
+    }, [data, filterAssignee, filterDate]);
+
     const onDragEnd = (result: DropResult) => {
         if (!result.destination || !data) return;
 
@@ -80,12 +131,52 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
     return (
         <div className={`flex flex-col flex-1 min-w-0 min-h-0 w-full overflow-hidden ${firaSans.className}`}>
             
+            {/* Filter Controls Bar */}
+            <div className="shrink-0 px-6 py-3 border-b border-zinc-800/40 flex items-center gap-4 bg-zinc-950/20">
+                <div className="flex items-center gap-2 text-zinc-500">
+                    <Filter size={14} />
+                    <span className="text-[11px] font-bold tracking-widest uppercase">Filters:</span>
+                </div>
+                
+                <select 
+                    value={filterAssignee}
+                    onChange={e => setFilterAssignee(e.target.value)}
+                    className="bg-zinc-900 border border-zinc-800 text-zinc-300 text-[12px] font-medium rounded-md px-3 py-1.5 outline-none focus:border-sky-500/50 hover:bg-zinc-800 transition-colors"
+                >
+                    <option value="ALL">All Assignees</option>
+                    <option value="UNASSIGNED">Unassigned</option>
+                    {uniqueAssignees.map((a: any) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                </select>
+
+                <select 
+                    value={filterDate}
+                    onChange={e => setFilterDate(e.target.value as any)}
+                    className="bg-zinc-900 border border-zinc-800 text-zinc-300 text-[12px] font-medium rounded-md px-3 py-1.5 outline-none focus:border-sky-500/50 hover:bg-zinc-800 transition-colors"
+                >
+                    <option value="ALL">Any Deadline</option>
+                    <option value="OVERDUE">Overdue</option>
+                    <option value="TODAY">Due Today</option>
+                    <option value="UPCOMING">Upcoming</option>
+                </select>
+                
+                {(filterAssignee !== 'ALL' || filterDate !== 'ALL') && (
+                    <button 
+                        onClick={() => { setFilterAssignee('ALL'); setFilterDate('ALL'); }}
+                        className="text-[11px] text-zinc-500 hover:text-zinc-300 font-bold uppercase tracking-wider transition-colors ml-auto"
+                    >
+                        Clear Filters
+                    </button>
+                )}
+            </div>
+
             {/* Board Area */}
             <main className="flex-1 min-h-0 min-w-0 overflow-x-auto overflow-y-hidden custom-scrollbar px-6 pb-6 pt-2">
                 <DragDropContext onDragEnd={onDragEnd}>
                     <div className="flex h-full items-start w-full">
                         {data.states.map((state: any, index: number) => {
-                            const issues = data.board[state.name] || [];
+                            const issues = filteredBoard[state.name] || [];
                             const themeKey = state.name.toUpperCase().replace(' ', '_');
                             const theme = STATE_THEMES[themeKey] || STATE_THEMES['TODO'];
 
@@ -164,12 +255,26 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
 // ─────────────────────────────────────────────
 function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
     const avatar = issue.assignee?.avatar || `/4092564-about-mobile-ui-profile-ui-user-website_114033.svg`;
+    const firstName = issue.assignee?.name?.split(' ')[0] || 'Unassigned';
     
     // Determine priority color marker
     let priorityColor = 'bg-zinc-700'; // Default low priority/none
     if (issue.priority === 'HIGH') priorityColor = 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)]';
     if (issue.priority === 'MEDIUM') priorityColor = 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]';
     if (issue.priority === 'LOW') priorityColor = 'bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.3)]';
+
+    // Format Due Date
+    let dueDateStr = null;
+    let isOverdue = false;
+    if (issue.dueDate) {
+        const due = new Date(issue.dueDate);
+        const now = new Date();
+        const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+        dueDateStr = due.toLocaleDateString(undefined, opts);
+        if (due < now && due.toDateString() !== now.toDateString()) {
+            isOverdue = true;
+        }
+    }
 
     return (
         <div 
@@ -180,7 +285,7 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
             className={`
                 group relative bg-black border rounded-lg flex flex-col p-4
                 transition-all duration-200 hover:bg-zinc-950
-                ${isDragging ? 'shadow-2xl border-zinc-700 rotate-[1.5deg] scale-[1.02] z-50' : 'border-zinc-800/80 shadow-md'}
+                ${isDragging ? 'shadow-2xl border-zinc-700 rotate-[1.5deg] scale-[1.02] z-50' : 'border-zinc-800/80 shadow-sm'}
             `}
         >
             <div className="flex flex-col gap-3.5">
@@ -200,7 +305,7 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
                     {issue.title}
                 </p>
 
-                {/* Bottom Row: Priority & Avatar */}
+                {/* Bottom Row: Priority, Date, Avatar */}
                 <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-2">
                         {/* Priority Dot */}
@@ -210,14 +315,28 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
                                 {issue.priority || 'NORMAL'}
                             </span>
                         </div>
+                        {/* Due Date Tag */}
+                        {dueDateStr && (
+                            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border ${isOverdue ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
+                                <Calendar size={10} />
+                                <span className="text-[10px] font-bold tracking-wide">{dueDateStr}</span>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="w-6 h-6 rounded-full overflow-hidden border border-zinc-700 bg-zinc-900 shrink-0 shadow-sm">
-                        {issue.assignee ? (
-                            <img src={avatar} alt={issue.assignee.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[10px] text-zinc-500 font-bold bg-zinc-800">?</div>
+                    <div className="flex items-center gap-2">
+                        {issue.assignee && (
+                            <span className="text-[11px] font-semibold text-zinc-500 hidden sm:block">
+                                {firstName}
+                            </span>
                         )}
+                        <div className="w-6 h-6 rounded-full overflow-hidden border border-zinc-700 bg-zinc-900 shrink-0 shadow-sm">
+                            {issue.assignee ? (
+                                <img src={avatar} alt={issue.assignee.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-[10px] text-zinc-500 font-bold bg-zinc-800">?</div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
