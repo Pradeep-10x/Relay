@@ -224,25 +224,15 @@ function StatCard({ icon, label, value, badge, badgeColor, borderColor, sub, ext
 }
 
 function ProjectCard({ project, ptSerif }: { project: any, ptSerif: string }) {
-    const statusColors: Record<string, string> = {
-        PLANNING: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-        ACTIVE: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-        COMPLETED: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
-    };
-    const colors = statusColors[project.status] || statusColors.PLANNING;
-
     const progressColor = project.progress >= 80 ? 'bg-emerald-500' : project.progress >= 40 ? 'bg-sky-500' : 'bg-amber-500';
 
     return (
-        <div className="min-w-[260px] max-w-[300px] bg-white dark:bg-zinc-950 rounded-xl p-5 shadow-sm border border-zinc-200/60 dark:border-zinc-800/40 flex-shrink-0 group hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors border-t-[3px] border-t-transparent" style={{ borderTopColor: project.progress >= 80 ? 'rgb(16 185 129)' : project.progress >= 40 ? 'rgb(14 165 233)' : 'rgb(245 158 11)' }}>
+        <div className="min-w-[260px] max-w-[300px] bg-white dark:bg-zinc-950 rounded-xl p-5 shadow-sm border border-zinc-200/60 dark:border-zinc-800/40 flex-shrink-0 group hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
             <div className="flex items-start justify-between mb-3">
                 <div>
                     <h3 className="text-[14px] font-semibold text-zinc-900 dark:text-white leading-snug">{project.name}</h3>
                     <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">{project.key}</span>
                 </div>
-                <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${colors}`}>
-                    {project.status}
-                </span>
             </div>
 
             <div className="mt-4 mb-2 flex items-center justify-between text-[11px]">
