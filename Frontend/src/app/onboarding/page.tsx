@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiFetch } from '@/lib/api';
 import { Sparkles, Link as LinkIcon, Users, Plus, Loader2, ArrowRight, ChevronLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,13 +46,13 @@ export default function OnboardingPage() {
                 const headers = token ? { 'Authorization': `Bearer ${token}` } : undefined;
 
                 // Fetch User
-                const userRes = await fetch(`${baseUrl}/api/v1/user/me`, { headers });
+                const userRes = await apiFetch(`/api/v1/user/me`);
                 if (!userRes.ok) throw new Error('Failed to load user');
                 const userData = await userRes.json();
                 setUser(userData.user || userData);
 
                 // Fetch Workspaces
-                const wsRes = await fetch(`${baseUrl}/api/v1/workspace`, { headers });
+                const wsRes = await apiFetch(`/api/v1/workspace`);
                 if (wsRes.ok) {
                     const wsData = await wsRes.json();
                     setWorkspaces(wsData.workspaces || []);
@@ -74,12 +75,10 @@ export default function OnboardingPage() {
         setActionLoading(true);
         setErrorMsg('');
         try {
-            const token = localStorage.getItem('accessToken');
-            const res = await fetch(`${baseUrl}/api/v1/workspace/create`, {
+            const res = await apiFetch(`/api/v1/workspace/create`, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ name: newWorkspaceName })
             });
@@ -103,10 +102,8 @@ export default function OnboardingPage() {
         setActionLoading(true);
         setErrorMsg('');
         try {
-            const token = localStorage.getItem('accessToken');
-            const res = await fetch(`${baseUrl}/api/v1/workspace/${inviteCode}/join`, {
-                method: 'POST',
-                headers: token ? { 'Authorization': `Bearer ${token}` } : undefined
+            const res = await apiFetch(`/api/v1/workspace/${inviteCode}/join`, {
+                method: 'POST'
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || 'Failed to join workspace');
