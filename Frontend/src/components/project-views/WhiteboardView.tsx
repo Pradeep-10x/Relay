@@ -115,8 +115,26 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
 
     if (isLoading) {
         return (
-            <div className="flex-1 flex items-center justify-center min-h-[400px]">
-                <div className="w-8 h-8 rounded-full border-2 border-zinc-600 border-t-transparent animate-spin" />
+            <div className="h-full flex flex-col w-full animate-pulse">
+                <div className="shrink-0 h-14 bg-zinc-950/20 border-b border-zinc-800/40 flex items-center justify-between px-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-9 h-9 rounded-md bg-zinc-200 dark:bg-zinc-900" />
+                        <div className="w-9 h-9 rounded-md bg-zinc-200 dark:bg-zinc-900" />
+                        <div className="w-px h-6 bg-zinc-800 mx-2" />
+                        <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map(i => (
+                                <div key={i} className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-900" />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex gap-3">
+                        <div className="w-20 h-8 rounded-md bg-zinc-200 dark:bg-zinc-900" />
+                        <div className="w-24 h-8 rounded-md bg-zinc-200 dark:bg-zinc-900" />
+                    </div>
+                </div>
+                <div className="flex-1 bg-zinc-950/10 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full border-2 border-zinc-200 dark:border-zinc-800/40 opacity-50" />
+                </div>
             </div>
         );
     }

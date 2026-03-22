@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/api';
 
 export function useProjectMembers(projectId: string | null) {
@@ -6,33 +6,28 @@ export function useProjectMembers(projectId: string | null) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchMembers = useCallback(async () => {
     if (!projectId) {
         setIsLoading(false);
         return;
     }
-
-    let isMounted = true;
-
-    const fetchMembers = async () => {
-      try {
-        setIsLoading(true);
-        const res = await apiFetch(`/api/v1/project/${projectId}/members`);
-        if (!res.ok) throw new Error('Failed to fetch project members');
-        
-        const data = await res.json();
-        if (isMounted) setMembers(data);
-      } catch (err: any) {
-        if (isMounted) setError(err.message || 'Error fetching members');
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    fetchMembers();
-
-    return () => { isMounted = false; };
+    try {
+      setIsLoading(true);
+      const res = await apiFetch(`/api/v1/project/${projectId}/members`);
+      if (!res.ok) throw new Error('Failed to fetch project members');
+      
+      const data = await res.json();
+      setMembers(data);
+    } catch (err: any) {
+      setError(err.message || 'Error fetching members');
+    } finally {
+      setIsLoading(false);
+    }
   }, [projectId]);
 
-  return { members, isLoading, error };
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  return { members, isLoading, error, refresh: fetchMembers };
 }

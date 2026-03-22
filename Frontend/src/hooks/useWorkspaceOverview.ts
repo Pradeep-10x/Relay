@@ -27,6 +27,7 @@ interface ProjectSummary {
 }
 
 interface WorkspaceOverviewData {
+    workspaceId: string;
     workspaceName: string;
     totalProjects: number;
     activeMembers: number;
@@ -152,6 +153,7 @@ export function useWorkspaceOverview() {
                 }));
 
                 setData({
+                    workspaceId,
                     workspaceName,
                     totalProjects: projectSummaries.length,
                     activeMembers: memberWorkloads.length,

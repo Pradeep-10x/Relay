@@ -7,8 +7,25 @@ export function ProjectAnalyticsView({ projectId }: { projectId: string }) {
 
     if (isLoading) {
         return (
-            <div className="flex-1 flex items-center justify-center min-h-[400px]">
-                <div className="w-8 h-8 rounded-full border-2 border-zinc-600 border-t-transparent animate-spin" />
+            <div className="px-6 py-6 w-full max-w-7xl mx-auto space-y-6 animate-pulse mt-4">
+                <div>
+                    <div className="w-32 h-6 bg-zinc-200 dark:bg-zinc-900 rounded-md mb-2" />
+                    <div className="w-64 h-4 bg-zinc-100 dark:bg-zinc-900/50 rounded-md" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="p-5 rounded-lg border border-transparent dark:border-zinc-800/40 bg-white dark:bg-zinc-950 h-[130px] flex flex-col justify-between">
+                            <div className="w-24 h-4 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                            <div className="w-16 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-8 pt-8 border-t border-zinc-800/40 grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="flex flex-col items-center gap-6">
+                        <div className="w-48 h-6 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                        <div className="w-32 h-32 rounded-full border-[12px] border-zinc-200 dark:border-zinc-900" />
+                    </div>
+                </div>
             </div>
         );
     }

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Fira_Sans, PT_Serif } from 'next/font/google';
-import { KanbanSquare, MoreHorizontal, Plus, Calendar, Filter } from 'lucide-react';
+import { KanbanSquare, MoreHorizontal, Plus, Calendar, Filter, ChevronDown } from 'lucide-react';
 import { useKanban } from '@/hooks/useKanban';
 import { useParams } from 'next/navigation';
 import { IssueSlideOver } from '@/components/IssueSlideOver';
+import { CreateIssueModal } from '@/components/CreateIssueModal';
 
 const firaSans = Fira_Sans({
     weight: ['400', '500', '600', '700', '800'],
@@ -34,10 +35,11 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
     
     // We fall back to the active workspace id if no project id is matched, 
     // although technically this is a project route, so there should be an ID.
-    const { data, isLoading, error, moveIssue } = useKanban(projectId);
+    const { data, isLoading, error, moveIssue, refresh } = useKanban(projectId);
 
-    // State for slide-over wrapper
+    // State for slide-over & Modals
     const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     // To avoid hydration mismatch errors with @hello-pangea/dnd, ensure we're mounted
     const [mounted, setMounted] = useState(false);
@@ -113,8 +115,36 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
 
     if (!mounted || isLoading) {
         return (
-            <div className="flex-1 w-full h-[calc(100vh-6rem)] flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-2 border-zinc-600 border-t-transparent animate-spin" />
+            <div className={`flex flex-col flex-1 min-w-0 min-h-0 w-full overflow-hidden animate-pulse ${firaSans.className}`}>
+                <div className="shrink-0 px-6 py-3 border-b border-zinc-800/40 flex items-center gap-4 bg-zinc-950/20">
+                    <div className="w-24 h-6 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                    <div className="w-32 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                    <div className="w-32 h-8 bg-zinc-100 dark:bg-zinc-900/50 rounded-md" />
+                </div>
+                <div className="flex-1 overflow-hidden px-6 pb-6 pt-2">
+                    <div className="flex h-full items-start w-full gap-4">
+                        {[1, 2, 3, 4].map(col => (
+                            <div key={col} className="flex flex-col flex-1 min-w-[200px] h-full">
+                                <div className="flex items-center justify-between mb-4 px-2 mt-2">
+                                    <div className="w-24 h-4 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                                    <div className="w-6 h-4 bg-zinc-100 dark:bg-zinc-900/50 rounded-full" />
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    {[1, 2].map(card => (
+                                        <div key={card} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 rounded-lg p-4 flex flex-col gap-3 h-[110px]">
+                                            <div className="w-16 h-3 bg-zinc-200 dark:bg-zinc-900 rounded" />
+                                            <div className="w-full h-4 bg-zinc-200 dark:bg-zinc-900 rounded" />
+                                            <div className="flex justify-between items-center mt-auto">
+                                                <div className="w-12 h-4 bg-zinc-100 dark:bg-zinc-900/50 rounded-full" />
+                                                <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-900" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -138,28 +168,28 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
                     <span className="text-[11px] font-bold tracking-widest uppercase">Filters:</span>
                 </div>
                 
-                <select 
+                <CustomSelect 
                     value={filterAssignee}
-                    onChange={e => setFilterAssignee(e.target.value)}
-                    className="bg-zinc-900 border border-zinc-800 text-zinc-300 text-[12px] font-medium rounded-md px-3 py-1.5 outline-none focus:border-sky-500/50 hover:bg-zinc-800 transition-colors"
-                >
-                    <option value="ALL">All Assignees</option>
-                    <option value="UNASSIGNED">Unassigned</option>
-                    {uniqueAssignees.map((a: any) => (
-                        <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                </select>
+                    onChange={setFilterAssignee}
+                    icon={null}
+                    options={[
+                        { label: 'All Assignees', value: 'ALL' },
+                        { label: 'Unassigned', value: 'UNASSIGNED' },
+                        ...uniqueAssignees.map((a: any) => ({ label: a.name, value: a.id }))
+                    ]}
+                />
 
-                <select 
+                <CustomSelect 
                     value={filterDate}
-                    onChange={e => setFilterDate(e.target.value as any)}
-                    className="bg-zinc-900 border border-zinc-800 text-zinc-300 text-[12px] font-medium rounded-md px-3 py-1.5 outline-none focus:border-sky-500/50 hover:bg-zinc-800 transition-colors"
-                >
-                    <option value="ALL">Any Deadline</option>
-                    <option value="OVERDUE">Overdue</option>
-                    <option value="TODAY">Due Today</option>
-                    <option value="UPCOMING">Upcoming</option>
-                </select>
+                    onChange={setFilterDate}
+                    icon={null}
+                    options={[
+                        { label: 'Any Deadline', value: 'ALL' },
+                        { label: 'Overdue', value: 'OVERDUE' },
+                        { label: 'Due Today', value: 'TODAY' },
+                        { label: 'Upcoming', value: 'UPCOMING' }
+                    ]}
+                />
                 
                 {(filterAssignee !== 'ALL' || filterDate !== 'ALL') && (
                     <button 
@@ -193,9 +223,15 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
                                                 {issues.length}
                                             </span>
                                         </div>
-                                        <button className="text-zinc-600 hover:text-zinc-300 transition-colors bg-zinc-900 border border-zinc-800 rounded-md p-1">
-                                            <Plus size={14} />
-                                        </button>
+                                        {index === 0 && (
+                                            <button 
+                                                onClick={() => setIsCreateModalOpen(true)}
+                                                className="text-zinc-600 hover:text-zinc-300 transition-colors bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-md p-1"
+                                                title="Create Issue"
+                                            >
+                                                <Plus size={14} />
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Column Body / Droppable Zone */}
@@ -245,6 +281,71 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
                     onClose={() => setSelectedIssueId(null)} 
                     availableStates={data?.states}
                 />
+            )}
+
+            {/* Create Issue Modal */}
+            <CreateIssueModal 
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                projectId={projectId}
+                onSuccess={() => {
+                    refresh();
+                }}
+            />
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────
+// Custom UI Select Dropdown Component
+// ─────────────────────────────────────────────
+function CustomSelect({ value, onChange, options }: any) {
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    // closing on click outside
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const selectedOption = options.find((o: any) => o.value === value);
+
+    return (
+        <div className="relative" ref={ref}>
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className={`flex items-center justify-between gap-3 bg-zinc-950 border ${isOpen ? 'border-zinc-700 shadow-[0_0_15px_rgba(255,255,255,0.03)]' : 'border-zinc-800/80'} text-zinc-300 text-[12px] font-semibold tracking-wide rounded-md px-3.5 py-1.5 min-w-[140px] outline-none hover:bg-zinc-900 hover:border-zinc-700 transition-all`}
+            >
+                <span className="truncate">{selectedOption?.label || 'Select'}</span>
+                <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isOpen ? 'rotate-180 text-zinc-300' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 mt-2 w-full min-w-[180px] bg-black border border-zinc-800 rounded-lg shadow-2xl shadow-black overflow-hidden z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100">
+                    {options.map((opt: any) => (
+                        <button
+                            key={opt.value}
+                            onClick={() => {
+                                onChange(opt.value);
+                                setIsOpen(false);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 text-[12px] font-semibold transition-colors flex items-center justify-between group ${
+                                value === opt.value 
+                                ? 'bg-zinc-900 text-white' 
+                                : 'text-zinc-500 hover:bg-zinc-950 hover:text-zinc-200'
+                            }`}
+                        >
+                            {opt.label}
+                            {value === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]" />}
+                        </button>
+                    ))}
+                </div>
             )}
         </div>
     );

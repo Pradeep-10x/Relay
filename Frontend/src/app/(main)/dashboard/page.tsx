@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Filter, Download, MoreHorizontal, ArrowUpRight, ArrowDownRight, ArrowRight } from 'lucide-react';
+import { Filter, Download, MoreHorizontal, ArrowUpRight, ArrowDownRight, ArrowRight, FolderKanban, FileText, Clock, CheckCircle2 } from 'lucide-react';
 import { Fira_Sans, PT_Serif } from 'next/font/google';
 import { useRouter } from 'next/navigation';
 import { useWorkspaceAnalytics } from '@/hooks/useWorkspaceAnalytics';
@@ -31,8 +31,35 @@ export default function DashboardPage() {
 
     if (analyticsLoading || projectsLoading) {
         return (
-            <div className={`flex-1 min-h-[calc(100vh-6rem)] w-full flex items-center justify-center`}>
-                <div className="w-8 h-8 rounded-full border-2 border-[#8b5cf6] border-t-transparent animate-spin" />
+            <div className={`p-8 w-full max-w-[1600px] mx-auto space-y-6 font-sans animate-pulse ${firaSans.className}`}>
+                <div className="flex flex-col gap-2 mb-8">
+                    <div className="w-48 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md flex-shrink-0" />
+                    <div className="w-32 h-4 bg-zinc-100 dark:bg-zinc-900/50 rounded-md flex-shrink-0" />
+                </div>
+                
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                    <div className="xl:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="bg-white dark:bg-zinc-950 rounded-md p-5 border border-transparent dark:border-zinc-800/40 h-[140px] flex flex-col justify-between">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-md bg-zinc-200 dark:bg-zinc-900" />
+                                        <div className="w-24 h-4 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                                    </div>
+                                    <div className="w-4 h-4 rounded bg-zinc-200 dark:bg-zinc-900" />
+                                </div>
+                                <div>
+                                    <div className="w-16 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md mb-2" />
+                                    <div className="w-32 h-3 bg-zinc-100 dark:bg-zinc-900/50 rounded-md" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="xl:col-span-5 bg-white dark:bg-zinc-950 rounded-md p-6 h-[304px] border border-transparent dark:border-zinc-800/40">
+                        <div className="w-40 h-5 bg-zinc-200 dark:bg-zinc-900 rounded-md mb-8" />
+                        <div className="w-full h-48 bg-zinc-100 dark:bg-zinc-900/50 rounded-md" />
+                    </div>
+                </div>
             </div>
         )
     }
@@ -132,7 +159,7 @@ export default function DashboardPage() {
                         pct="12.3%" 
                         trendUp={true} 
                         desc="Active across workspace"
-                        iconSrc="/projects_icon_142976.svg"
+                        icon={FolderKanban}
                     />
                     <MetricCard 
                         title="Total Issues" 
@@ -140,7 +167,7 @@ export default function DashboardPage() {
                         pct="20.1%" 
                         trendUp={true} 
                         desc="Assigned to you"
-                        iconSrc="/file.svg"
+                        icon={FileText}
                     />
                     <MetricCard 
                         title="Pending Issues" 
@@ -148,7 +175,7 @@ export default function DashboardPage() {
                         pct="7.6%" 
                         trendUp={false} 
                         desc="Requires attention"
-                        iconSrc="/time.svg"
+                        icon={Clock}
                     />
                     <MetricCard 
                         title="Resolved Issues" 
@@ -156,7 +183,7 @@ export default function DashboardPage() {
                         pct="13%" 
                         trendUp={true} 
                         desc="Completed workloads"
-                        iconSrc="/done.svg"
+                        icon={CheckCircle2}
                     />
                 </div>
 
@@ -415,14 +442,14 @@ export default function DashboardPage() {
 
 // ------ Helper Components ------
 
-function MetricCard({ title, value, pct, trendUp, desc, iconSrc }: any) {
+function MetricCard({ title, value, pct, trendUp, desc, icon: Icon }: any) {
     return (
         <div className={`group bg-white dark:bg-zinc-950 shadow-sm rounded-md p-5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors border border-transparent hover:border-zinc-200 dark:border-zinc-800 flex flex-col justify-between`}>
             {/* Top Row */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-md flex items-center justify-center bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 shadow-sm`}>
-                        <img src={iconSrc} alt={title} className="w-[16px] h-[16px] opacity-75 rounded-sm" />
+                        <Icon strokeWidth={2.2} size={15} className="opacity-80" />
                     </div>
                     <div className="text-[12px] font-medium text-zinc-700 dark:text-zinc-300 tracking-wide">{title}</div>
                 </div>

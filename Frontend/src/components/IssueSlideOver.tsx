@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, UserPlus, FileText, Activity } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { formatDistanceToNow } from 'date-fns';
+import { useProjectMembers } from '@/hooks/useProjectMembers';
 
 interface IssueSlideOverProps {
     issueId: string;
@@ -14,31 +15,100 @@ export function IssueSlideOver({ issueId, onClose, availableStates = [] }: Issue
     const [issue, setIssue] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'comments' | 'activity'>('comments');
+    
+    // Comments
     const [commentText, setCommentText] = useState('');
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+    // Description
+    const [isEditingDesc, setIsEditingDesc] = useState(false);
+    const [editDescription, setEditDescription] = useState('');
+
+    const { members } = useProjectMembers(issue?.projectId || '');
+
+    const fetchIssue = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const res = await apiFetch(`/api/v1/issues/${issueId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setIssue(data);
+                setEditDescription(data.description || '');
+            }
+        } catch (err) {
+            console.error("Failed to fetch issue data", err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [issueId]);
 
     useEffect(() => {
-        const fetchIssue = async () => {
-            setIsLoading(true);
-            try {
-                const res = await apiFetch(`/api/v1/issues/${issueId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setIssue(data);
-                }
-            } catch (err) {
-                console.error("Failed to fetch issue data", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchIssue();
-    }, [issueId]);
+    }, [fetchIssue]);
+
+    const handleAddComment = async () => {
+        if (!commentText.trim()) return;
+        setIsSubmittingComment(true);
+        try {
+            const res = await apiFetch(`/api/v1/issues/${issueId}/comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: commentText.trim() })
+            });
+            if (res.ok) {
+                setCommentText('');
+                fetchIssue(); // Reload to get new timeline
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSubmittingComment(false);
+        }
+    };
+
+    const handleSaveDescription = async () => {
+        try {
+            await apiFetch(`/api/v1/issues/${issueId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: editDescription })
+            });
+            setIssue((prev: any) => ({ ...prev, description: editDescription }));
+            setIsEditingDesc(false);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleUpdateAssignee = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        const targetAssigneeId = val === 'unassigned' ? null : val;
+        
+        try {
+            await apiFetch(`/api/v1/issues/${issueId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assigneeId: targetAssigneeId })
+            });
+            if (!targetAssigneeId) {
+                setIssue((prev: any) => ({ ...prev, assignee: null, assigneeId: null }));
+            } else {
+                const member = members.find((m: any) => m.userId === targetAssigneeId);
+                if (member) {
+                    setIssue((prev: any) => ({ ...prev, assignee: member.user, assigneeId: targetAssigneeId }));
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const updatePriority = async (newPriority: string) => {
         setIssue((prev: any) => ({ ...prev, priority: newPriority }));
         try {
             await apiFetch(`/api/v1/issues/${issueId}`, {
                 method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ priority: newPriority })
             });
         } catch (err) {
@@ -54,6 +124,7 @@ export function IssueSlideOver({ issueId, onClose, availableStates = [] }: Issue
             try {
                 await apiFetch(`/api/v1/issues/${issueId}/state`, {
                     method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ targetStateId })
                 });
             } catch (err) {
@@ -127,11 +198,40 @@ export function IssueSlideOver({ issueId, onClose, availableStates = [] }: Issue
                                 </div>
 
                                 {/* Description */}
-                                <div className="space-y-3">
-                                    <h3 className="text-[16px] font-bold text-zinc-100 tracking-wide">Description</h3>
-                                    <div className="text-[14px] text-zinc-400 leading-relaxed min-h-[100px] whitespace-pre-wrap">
-                                        {issue.description || 'No description provided.'}
+                                <div className="space-y-3 relative group">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-[16px] font-bold text-zinc-100 tracking-wide">Description</h3>
+                                        {!isEditingDesc && (
+                                            <button 
+                                                onClick={() => setIsEditingDesc(true)}
+                                                className="opacity-0 group-hover:opacity-100 text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-300 transition-all"
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
                                     </div>
+                                    
+                                    {isEditingDesc ? (
+                                        <div className="space-y-3">
+                                            <textarea 
+                                                value={editDescription}
+                                                onChange={(e) => setEditDescription(e.target.value)}
+                                                className="w-full min-h-[120px] p-4 rounded-lg bg-zinc-900/50 border border-zinc-800 text-[14px] text-zinc-100 outline-none focus:border-zinc-600 transition-colors shadow-sm resize-y"
+                                                autoFocus
+                                            />
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button onClick={() => { setIsEditingDesc(false); setEditDescription(issue.description || ''); }} className="px-3 py-1.5 text-[12px] font-bold text-zinc-400 hover:text-zinc-200">Cancel</button>
+                                                <button onClick={handleSaveDescription} className="px-3 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-white text-[12px] font-bold shadow-sm">Save</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div 
+                                            onClick={() => setIsEditingDesc(true)}
+                                            className="text-[14px] text-zinc-400 leading-relaxed min-h-[100px] whitespace-pre-wrap cursor-text hover:bg-zinc-900/30 p-2 -mx-2 rounded-lg transition-colors"
+                                        >
+                                            {issue.description || 'No description provided. Click to add one.'}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Tabs */}
@@ -181,8 +281,12 @@ export function IssueSlideOver({ issueId, onClose, availableStates = [] }: Issue
                                                         >
                                                             Cancel
                                                         </button>
-                                                        <button className="h-9 px-5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white text-[13px] font-bold tracking-wide transition-colors shadow-sm">
-                                                            Save
+                                                        <button 
+                                                            onClick={handleAddComment}
+                                                            disabled={isSubmittingComment}
+                                                            className="h-9 px-5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white text-[13px] font-bold tracking-wide transition-colors shadow-sm disabled:opacity-50"
+                                                        >
+                                                            {isSubmittingComment ? 'Saving...' : 'Save'}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -283,22 +387,37 @@ export function IssueSlideOver({ issueId, onClose, availableStates = [] }: Issue
                                     </div>
 
                                     {/* Assignee */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 relative">
                                         <label className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">Assignee</label>
-                                        <div className="flex items-center gap-3 py-1 text-[13px] font-medium text-zinc-300">
-                                            {issue.assignee ? (
-                                                <>
-                                                    <img src={issue.assignee.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${issue.assignee.name}`} className="w-7 h-7 rounded-full bg-zinc-800 shrink-0" />
-                                                    <span className="font-semibold text-zinc-100">{issue.assignee.name}</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="w-7 h-7 rounded-full bg-zinc-900 border border-zinc-800 border-dashed flex items-center justify-center shrink-0">
-                                                        <UserPlus size={12} className="text-zinc-500" />
-                                                    </div>
-                                                    <span className="text-zinc-500">Unassigned</span>
-                                                </>
-                                            )}
+                                        <div className="relative w-full h-10">
+                                            <select 
+                                                value={issue.assigneeId || 'unassigned'}
+                                                onChange={handleUpdateAssignee}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                            >
+                                                <option value="unassigned">Unassigned</option>
+                                                {members.map((m: any) => (
+                                                    <option key={m.userId} value={m.userId}>{m.user.name}</option>
+                                                ))}
+                                            </select>
+                                            <div className="w-full h-10 px-3 rounded-md bg-zinc-900/40 border border-zinc-800 flex items-center justify-between text-[13px] text-white font-medium cursor-pointer shadow-sm hover:border-zinc-700 hover:bg-zinc-900/80 transition-colors pointer-events-none">
+                                                <div className="flex items-center gap-3 py-1 font-medium text-zinc-300">
+                                                    {issue.assignee ? (
+                                                        <>
+                                                            <img src={issue.assignee.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${issue.assignee.name}`} className="w-6 h-6 rounded-full bg-zinc-800 shrink-0" />
+                                                            <span className="font-semibold text-zinc-100 truncate max-w-[120px]">{issue.assignee.name}</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-6 h-6 rounded-full bg-zinc-900 border border-zinc-800 border-dashed flex items-center justify-center shrink-0">
+                                                                <UserPlus size={10} className="text-zinc-500" />
+                                                            </div>
+                                                            <span className="text-zinc-500">Unassigned</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <span className="text-zinc-500 text-[10px]">▼</span>
+                                            </div>
                                         </div>
                                     </div>
 

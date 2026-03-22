@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { ArrowUpRight, ArrowRight, ChevronLeft, ChevronRight, Users, FolderKanban, CheckCircle2, BarChart3 } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { ArrowUpRight, ArrowRight, ChevronLeft, ChevronRight, Users, FolderKanban, CheckCircle2, BarChart3, X, Copy, Check } from 'lucide-react';
 import { Fira_Sans, PT_Serif } from 'next/font/google';
 import { useRouter } from 'next/navigation';
 import { useWorkspaceOverview } from '@/hooks/useWorkspaceOverview';
+import { apiFetch } from '@/lib/api';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const firaSans = Fira_Sans({
     weight: ['400', '500', '600', '700'],
@@ -23,10 +25,81 @@ export default function WorkspacePage() {
     const router = useRouter();
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [inviteToken, setInviteToken] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleGenerateInvite = async () => {
+        setIsGenerating(true);
+        try {
+            const res = await apiFetch(`/api/v1/workspace/${data?.workspaceId}/invite`, {
+                method: 'POST'
+            });
+            if (res.ok) {
+                const result = await res.json();
+                setInviteToken(result.invite.token);
+            } else {
+                console.error('Failed to generate invite');
+            }
+        } catch (err) {
+            console.error('Failed to generate invite', err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleCopy = () => {
+        if (!inviteToken) return;
+        const link = `${window.location.origin}/join/${inviteToken}`;
+        navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     if (isLoading) {
         return (
-            <div className="flex-1 min-h-[calc(100vh-6rem)] w-full flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-2 border-zinc-600 border-t-transparent animate-spin" />
+            <div className={`p-8 w-full max-w-[1600px] mx-auto space-y-8 font-sans animate-pulse ${firaSans.className}`}>
+                <div className="flex flex-col gap-2 mb-2">
+                    <div className="w-64 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                    <div className="w-48 h-4 bg-zinc-100 dark:bg-zinc-900/50 rounded-md mt-1" />
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="bg-white dark:bg-zinc-950 rounded-md p-5 border border-transparent dark:border-zinc-800/40 h-[140px] flex flex-col justify-between">
+                            <div className="flex justify-between items-center mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded bg-zinc-200 dark:bg-zinc-900" />
+                                    <div className="w-24 h-4 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                                </div>
+                                <div className="w-12 h-4 rounded bg-zinc-200 dark:bg-zinc-900" />
+                            </div>
+                            <div className="w-16 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                            <div className="w-32 h-3 bg-zinc-100 dark:bg-zinc-900/50 rounded-md mt-2" />
+                        </div>
+                    ))}
+                </div>
+
+                <div>
+                    <div className="flex justify-between items-center mb-4 mt-8">
+                        <div className="w-48 h-6 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                        <div className="flex gap-2">
+                            <div className="w-8 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                            <div className="w-8 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
+                        </div>
+                    </div>
+                    <div className="flex gap-5 overflow-hidden">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="min-w-[260px] max-w-[300px] h-[160px] bg-white dark:bg-zinc-950 rounded-md p-5 border border-transparent dark:border-zinc-800/40 shrink-0">
+                                <div className="w-32 h-5 bg-zinc-200 dark:bg-zinc-900 rounded-md mb-2" />
+                                <div className="w-16 h-3 bg-zinc-100 dark:bg-zinc-900/50 rounded-md mb-6" />
+                                <div className="w-full h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md mb-3" />
+                                <div className="w-16 h-3 bg-zinc-100 dark:bg-zinc-900/50 rounded-md" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -94,6 +167,7 @@ export default function WorkspacePage() {
                     badgeColor="bg-sky-500/15 text-sky-400"
                     badge="Manage →"
                     borderColor="border-l-sky-500"
+                    onBadgeClick={() => setIsInviteOpen(true)}
                 />
                 <StatCard
                     icon={<CheckCircle2 size={18} />}
@@ -114,6 +188,69 @@ export default function WorkspacePage() {
                     borderColor="border-l-amber-500"
                 />
             </div>
+
+            {/* In-View Workspace Invite Modal */}
+            <AnimatePresence>
+                {isInviteOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                        onClick={() => setIsInviteOpen(false)}
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+                            onClick={e => e.stopPropagation()}
+                            className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl p-6 relative overflow-hidden"
+                        >
+                            <button onClick={() => setIsInviteOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors z-10">
+                                <X size={18} />
+                            </button>
+                            <div className="relative z-10">
+                                <h3 className="text-xl font-bold tracking-tight text-white mb-1">Invite Team Members</h3>
+                                <p className="text-[13px] text-zinc-400 mb-6 leading-relaxed flex-1">
+                                    Generate a unique invitation link to bring new members into the <span className="text-white font-medium">{data?.workspaceName}</span> workspace. The link will expire in 24 hours.
+                                </p>
+                                
+                                <div className="space-y-4">
+                                    {inviteToken ? (
+                                        <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                            <label className="text-[11px] font-bold tracking-widest text-zinc-500 uppercase">Share this link</label>
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-1 h-10 px-3 flex items-center bg-zinc-900 border border-zinc-700/50 rounded-md text-sky-400 font-mono text-[12px] overflow-hidden whitespace-nowrap overflow-ellipsis">
+                                                    {window.location.origin}/join/{inviteToken}
+                                                </div>
+                                                <button 
+                                                    onClick={handleCopy}
+                                                    className="w-10 h-10 flex items-center justify-center shrink-0 rounded-md bg-white text-black hover:bg-zinc-200 transition-colors shadow-sm"
+                                                    title="Copy link"
+                                                >
+                                                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                                                </button>
+                                            </div>
+                                            <p className="text-[11px] text-zinc-500 font-medium">This link grants Member access and expires in 24 hours.</p>
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={handleGenerateInvite}
+                                            disabled={isGenerating}
+                                            className="w-full h-10 bg-white text-black font-bold tracking-wide text-[13px] rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {isGenerating ? (
+                                                <>
+                                                    <div className="w-3.5 h-3.5 rounded-full border-2 border-black/20 border-t-black animate-spin" />
+                                                    Generating Link...
+                                                </>
+                                            ) : (
+                                                'Generate Invite Link'
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* ─── Recent Projects Carousel ─── */}
             <section>
@@ -206,7 +343,7 @@ export default function WorkspacePage() {
 
 // ───────── Helper Components ─────────
 
-function StatCard({ icon, label, value, badge, badgeColor, borderColor, sub, extra }: any) {
+function StatCard({ icon, label, value, badge, badgeColor, borderColor, sub, extra, onBadgeClick }: any) {
     return (
         <div className={`bg-white dark:bg-zinc-950 rounded-md p-5 shadow-sm border border-transparent dark:border-zinc-800/40 border-l-[3px] ${borderColor} flex flex-col justify-between group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors`}>
             <div className="flex items-center justify-between mb-3">
@@ -215,7 +352,13 @@ function StatCard({ icon, label, value, badge, badgeColor, borderColor, sub, ext
                     <span className="text-[12px] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide">{label}</span>
                 </div>
                 {badge && (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeColor}`}>{badge}</span>
+                    <button 
+                        onClick={onBadgeClick}
+                        disabled={!onBadgeClick}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeColor} ${onBadgeClick ? 'hover:opacity-80 transition-opacity cursor-pointer' : 'cursor-default'}`}
+                    >
+                        {badge}
+                    </button>
                 )}
             </div>
             <div className="text-[30px] font-bold text-zinc-900 dark:text-white leading-none tracking-tight">{value}</div>

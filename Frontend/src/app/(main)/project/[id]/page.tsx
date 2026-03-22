@@ -10,6 +10,7 @@ import { KanbanBoardView } from '@/components/project-views/KanbanBoardView';
 import { WhiteboardView } from '@/components/project-views/WhiteboardView';
 import { ProjectMembersView } from '@/components/project-views/ProjectMembersView';
 import { ProjectAnalyticsView } from '@/components/project-views/ProjectAnalyticsView';
+import { useProjects } from '@/hooks/useProjects';
 
 const firaSans = Fira_Sans({
     weight: ['400', '500', '600', '700', '800'],
@@ -21,6 +22,8 @@ type TabType = 'board' | 'whiteboard' | 'members' | 'analytics';
 export default function ProjectMasterPage() {
     const params = useParams();
     const projectId = params.id as string;
+    const { projects } = useProjects();
+    const currentProject = projects.find(p => p.id === projectId);
     
     const [activeTab, setActiveTab] = useState<TabType>('board');
 
@@ -45,7 +48,9 @@ export default function ProjectMasterPage() {
                             <span className="w-2 h-2 rounded-full bg-emerald-500" />
                             <span className="text-[11px] font-bold tracking-widest uppercase text-zinc-400">Environment Active</span>
                         </div>
-                        <h1 className="text-[28px] font-bold tracking-tight text-white leading-none">Global Navigation</h1>
+                        <h1 className="text-[28px] font-bold tracking-tight text-white leading-none">
+                            {currentProject ? currentProject.name : 'Loading...'}
+                        </h1>
                     </div>
 
                     {/* Bottom Row: Auth Aesthetics Segmented Control */}

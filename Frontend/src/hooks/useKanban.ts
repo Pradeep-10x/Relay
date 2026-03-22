@@ -32,6 +32,7 @@ export function useKanban(projectId: string | null) {
 
     const fetchBoard = useCallback(async () => {
         if (!projectId) return;
+        setData(null);
         setIsLoading(true);
         try {
             const res = await apiFetch(`/api/v1/projects/${projectId}/kanban`);
