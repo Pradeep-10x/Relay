@@ -68,7 +68,7 @@ export function Navbar() {
                                         setIsSearchOpen(false);
                                         router.push(`/project/${project.id}`);
                                     }}
-                                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 flex items-center gap-3 transition-colors text-sm text-zinc-700 dark:text-zinc-300"
+                                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex items-center gap-3 transition-colors text-sm text-zinc-700 dark:text-zinc-300"
                                 >
                                     <div className="w-6 h-6 rounded flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shrink-0">
                                         <img src="/projects_icon_142976.svg" alt="Project" className="w-3.5 h-3.5 dark:invert opacity-70" />

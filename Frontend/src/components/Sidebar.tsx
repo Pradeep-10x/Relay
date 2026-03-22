@@ -37,7 +37,7 @@ export function Sidebar() {
     };
 
     return (
-        <aside className={`w-[260px] h-screen bg-white dark:bg-black md:flex flex-col flex-shrink-0 text-zinc-600 dark:text-zinc-400 font-sans border-r border-zinc-200 dark:border-zinc-800 hidden ${firaSans.className}`}>
+        <aside className={`w-[260px] h-screen bg-white dark:bg-[#0A0A0A] md:flex flex-col flex-shrink-0 text-zinc-600 dark:text-zinc-400 font-sans border-r border-zinc-200 dark:border-zinc-800 hidden ${firaSans.className}`}>
             {/* Logo */}
             <div className="h-20 flex items-center px-6 shrink-0 mt-2">
                 <Link href="/" className="flex items-center gap-3 text-zinc-900 dark:text-white transition-colors">

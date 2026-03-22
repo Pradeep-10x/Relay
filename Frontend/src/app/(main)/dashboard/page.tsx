@@ -109,7 +109,7 @@ export default function DashboardPage() {
     return (
         <div className={`p-8 w-full max-w-[1600px] mx-auto space-y-6 font-sans ${firaSans.className}`}>
             {/* Header */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+            <header className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <div>
                     <h1 className="text-[26px] font-semibold text-zinc-100 tracking-wide">Dashboard</h1>
                     <p className={`text-zinc-500 text-[13px] mt-1 ${ptSerif.className}`}>Here's your activity details</p>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
             </header>
 
             {/* Top Section */}
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div className="relative z-10 grid grid-cols-1 xl:grid-cols-12 gap-6">
                 
                 {/* 4 Metric Cards (Left 7 cols) */}
                 <div className="xl:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -230,7 +230,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Bottom Section */}
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 pt-2">
+            <div className="relative z-10 grid grid-cols-1 xl:grid-cols-12 gap-6 pt-2">
                 
                 {/* Recent Activity (Left 8 cols) */}
                 <div className="xl:col-span-8 bg-white dark:bg-zinc-950 shadow-sm rounded-md flex flex-col overflow-hidden h-[400px]">
@@ -403,7 +403,7 @@ export default function DashboardPage() {
 
 function MetricCard({ title, value, pct, trendUp, desc, iconSrc }: any) {
     return (
-        <div className={`group bg-white dark:bg-zinc-950 shadow-sm rounded-xl p-5 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors border border-transparent hover:border-zinc-200 dark:border-zinc-800 flex flex-col justify-between`}>
+        <div className={`group bg-white dark:bg-zinc-950 shadow-sm rounded-xl p-5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors border border-transparent hover:border-zinc-200 dark:border-zinc-800 flex flex-col justify-between`}>
             {/* Top Row */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
@@ -514,7 +514,7 @@ function CustomDropdown({ value, onChange, options }: any) {
 
 function ActivityRow({ name, email, status, statusColor, id, retained, amount }: any) {
     return (
-        <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors group relative cursor-pointer">
+        <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors group relative cursor-pointer">
             <td className="px-6 py-[18px]">
                 <div className="flex items-center gap-3.5">
                     <div className="flex flex-col gap-0.5">
