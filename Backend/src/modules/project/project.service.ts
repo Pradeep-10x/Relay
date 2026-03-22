@@ -130,6 +130,15 @@ export const getWorkspaceProjectsService = async (userId: string, workspaceId: s
 
       return prisma.project.findMany({
         where: { workspaceId },
+       include: {
+        Issues: {
+          include: { 
+            state: true,
+            project: { select: { name: true, key: true } }
+          }
+        },
+        members: true,
+      }
       });
 };
 
