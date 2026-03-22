@@ -132,6 +132,8 @@ model Issue {
   reporterId    String
   assigneeId    String?
   stateId       String
+  dueDate       DateTime?
+  isOverdueNotified Boolean           @default(false)
   isDeleted     Boolean           @default(false)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -237,6 +239,7 @@ model Notification {
 enum NotificationType {
   MENTION
   ISSUE_ASSIGNED
+  ISSUE_OVERDUE
 }
 
 model ProjectBoard {

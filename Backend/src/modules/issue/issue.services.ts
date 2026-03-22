@@ -10,7 +10,8 @@ export const createIssueService = async (
   title: string,
   priority: IssuePriority,
   description?: string,
-   assigneeId?: string
+  assigneeId?: string,
+  dueDate?: Date
 ) => {
   return prisma.$transaction(async (tx) => {
 
@@ -71,6 +72,7 @@ export const createIssueService = async (
         projectId,
         reporterId: userId,
         assigneeId: assigneeId ?? null,
+        dueDate: dueDate ?? null,
         stateId: openState.id,
         version: 1,
       },
@@ -420,6 +422,7 @@ export const updateIssueService = async (
     description?: string;
     priority?: IssuePriority;
     assigneeId?: string | null;
+    dueDate?: Date | null;
   }
 ) => {
   return prisma.$transaction(async (tx) => {
@@ -493,6 +496,17 @@ export const updateIssueService = async (
       if(data.assigneeId){
         await createNotificationService(data.assigneeId, "ISSUE_ASSIGNED", issue.id);
       }
+    }
+
+    if (data.dueDate !== undefined) {
+      activities.push({
+        field: "dueDate",
+        fromValue: issue.dueDate?.toISOString() ?? null,
+        toValue: data.dueDate?.toISOString() ?? null,
+      });
+
+      // Reset the overdue flag so the cron can safely trigger again if a new date was assigned
+      (data as any).isOverdueNotified = false;
     }
 
     const updated = await tx.issue.update({
@@ -666,3 +680,24 @@ export const getProjectAnalyticsService = async (
 
   return analytics;
 };
+
+export const getUserIssuesService = async (
+  userId: string
+) => {
+  const issues = await prisma.issue.findMany({
+    where: {
+      assigneeId: userId,
+      isDeleted: false,
+    },
+    include: {
+      project: {
+        select: {
+          id: true,
+          name: true,
+          workspaceId: true,
+        },
+      },
+    },
+  });
+  return issues;
+}

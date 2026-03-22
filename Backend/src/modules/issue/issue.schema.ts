@@ -11,6 +11,7 @@ export const createIssueSchema = z.object({
   description: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional().default("MEDIUM"),
   assigneeId: z.string().optional(),
+  dueDate: z.string().datetime().optional().nullable(),
 });
 
 export const updateIssueStateSchema = z.object({
@@ -26,4 +27,5 @@ export const updateIssueSchema = z.object({
   description: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   assigneeId: z.string().optional().nullable(),
+  dueDate: z.string().datetime().optional().nullable(),
 });

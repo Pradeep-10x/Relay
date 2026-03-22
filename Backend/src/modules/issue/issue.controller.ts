@@ -15,7 +15,7 @@ import { IssuePriority } from "@prisma/client";
 
 export const createIssue = async (req: Request, res: Response) => {
   const { projectId } = issueParamsSchema.parse(req.params);
-  const { title, description, priority, assigneeId } = createIssueSchema.parse(req.body);
+  const { title, description, priority, assigneeId, dueDate } = createIssueSchema.parse(req.body);
 
   const issue = await createIssueService(
     projectId as string,
@@ -23,7 +23,8 @@ export const createIssue = async (req: Request, res: Response) => {
     title,
     (priority || "MEDIUM") as IssuePriority, 
     description || undefined,
-    assigneeId || undefined
+    assigneeId || undefined,
+    dueDate ? new Date(dueDate) : undefined
   );
 
   res.status(201).json(issue);
@@ -92,13 +93,14 @@ export const getIssueActivity = async (req: Request, res: Response) => {
 
 export const updateIssue = async (req: Request, res: Response) => {
   const { issueId } = issueParamsSchema.parse(req.params);
-  const { title, description, priority, assigneeId } = updateIssueSchema.parse(req.body);
+  const { title, description, priority, assigneeId, dueDate } = updateIssueSchema.parse(req.body);
 
   const updateData: any = {};
   if (title !== undefined) updateData.title = title;
   if (description !== undefined) updateData.description = description;
   if (priority !== undefined) updateData.priority = priority as IssuePriority;
   if (assigneeId !== undefined) updateData.assigneeId = assigneeId;
+  if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
 
    const updatedIssue = await updateIssueService(
     issueId as string,
