@@ -20,7 +20,6 @@ import { logger } from "./config/logger.js";
 import { redis } from "./lib/redis.js";
 const app = express();
 
-app.use(helmet());
 app.use(cors({
   origin: true,
   credentials: true
