@@ -1,5 +1,4 @@
 import express from "express";
-import helmet from "helmet";
 import cors from "cors";
 import { prisma, dbReady } from "./lib/prisma.js";
 import cookieParser from "cookie-parser";
