@@ -26,7 +26,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-//app.set("trust proxy", true); 
+app.set("trust proxy", true); 
 app.use(rateLimiter);
 app.use(httpLogger);
 
