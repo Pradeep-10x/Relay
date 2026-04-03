@@ -3,7 +3,7 @@ name: Deploy Backend
 on:
   push:
     branches:
-      - main   # change if your branch is different
+      - master   # change if your branch is different
 
 jobs:
   deploy:
@@ -24,7 +24,7 @@ jobs:
 
             pwd
 
-            git pull origin main
+            git pull origin master
 
             npm install
 
