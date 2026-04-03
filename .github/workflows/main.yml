@@ -3,7 +3,7 @@ name: Deploy Backend
 on:
   push:
     branches:
-      - master   # change if your branch is different
+      - master   # since your repo is on master
 
 jobs:
   deploy:
@@ -22,17 +22,32 @@ jobs:
 
             cd /home/ubuntu/Relay/Backend
 
+            echo "Current directory:"
             pwd
 
+            echo "Listing files:"
+            ls -la
+
+            echo "Pulling code..."
             git pull origin master
 
+            echo "Installing deps..."
             npm install
 
+            echo "Running prisma..."
             npx prisma generate || true
             npx prisma migrate deploy || true
 
+            echo "Building..."
             npm run build || true
 
+            echo "PM2 status before:"
+            pm2 list
+
+            echo "Restarting app..."
             pm2 reload my-app || pm2 start index.js --name my-app
+
+            echo "PM2 status after:"
+            pm2 list
 
             echo "Deploy done"
