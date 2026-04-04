@@ -102,6 +102,10 @@ export const refreshTokens = async(oldToken: string) => {
     throw new Error("Invalid refresh token");
   }
 
+  if (stored.expiresAt < new Date()) {
+    throw new Error("Refresh token expired");
+  }
+
   // revoking old token
   await prisma.refreshToken.update({
     where: { id: stored.id },

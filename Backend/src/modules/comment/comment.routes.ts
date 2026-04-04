@@ -58,7 +58,7 @@ router.post("/issues/:issueId/comment", authMiddleware, createComment);
  *               items:
  *                 $ref: '#/components/schemas/Comment'
  */
-router.get("/issues/:issueId/comments", getIssueComments);
+router.get("/issues/:issueId/comments", authMiddleware, getIssueComments);
 
 /**
  * @swagger

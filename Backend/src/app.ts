@@ -17,6 +17,7 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
 import { logger } from "./config/logger.js";
 import { redis } from "./lib/redis.js";
+import { globalErrorHandler } from "./middleware/error.middleware.js";
 const app = express();
 
 app.use(cors({
@@ -72,5 +73,8 @@ app.use("/api/v1", commentRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1", boardRoutes);
 app.use("/api/v1", kanbanRoutes);
+
+// Global error handler — must be AFTER all routes
+app.use(globalErrorHandler);
 
 export default app;

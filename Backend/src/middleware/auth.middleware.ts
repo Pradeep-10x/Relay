@@ -37,8 +37,8 @@ export const authMiddleware = async (
       },
     });
 
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
+    if (!user || user.deletedAt) {
+      return res.status(401).json({ message: "User not found or deactivated" });
     }
 
     
@@ -46,7 +46,7 @@ export const authMiddleware = async (
 
     next();
   } catch (error) {
-    return res.status(401).json({ message: error });
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
     
