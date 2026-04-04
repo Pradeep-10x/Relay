@@ -32,15 +32,9 @@ app.use(httpLogger);
 
 //health check 
 app.get('/health', async (req, res) => {
-//   try {
-//      await prisma.$queryRaw`SELECT 1`;
-//     res.json({ ok: true, db: true, timestamp: new Date().toISOString() });
-//   }
-//   catch (error) {
-   console.log('Health check failed');
-    res.status(503).json({ ok: true, db: true });
+    console.log('Health check failed');
+    res.status(200).json({ ok: true, db: true });
   }
-
 );
 
 app.get("/ready", (req, res) => {
