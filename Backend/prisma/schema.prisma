@@ -149,6 +149,8 @@ model Issue {
 
   @@index([projectId])
   @@index([assigneeId])
+  @@index([stateId])
+  @@index([dueDate])
 }
 
 model WorkflowState {
@@ -234,6 +236,8 @@ model Notification {
   user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   issue   Issue?        @relation(fields: [issueId], references: [id], onDelete: Cascade)
   comment IssueComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum NotificationType {

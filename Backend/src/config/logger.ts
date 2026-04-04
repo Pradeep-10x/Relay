@@ -1,7 +1,5 @@
-import {pino} from "pino";
+import { logger } from "../lib/logger.js";
 
-export const logger = pino({
-  transport: {
-    target: "pino-pretty",
-  },
-});
+// Re-export the single logger instance from lib/logger
+// This file exists for backward compatibility — all code should import from lib/logger
+export { logger };
