@@ -2,8 +2,6 @@ import { Redis } from "ioredis";
 import { logger } from "./logger.js";
 
 export const redis = new Redis(process.env.REDIS_URL!,{
-    host: "localhost",
-    port: 6379,
     lazyConnect: false,
 });
 
