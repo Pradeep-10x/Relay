@@ -9,7 +9,7 @@ export const issueParamsSchema = z.object({
 export const createIssueSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   description: z.string().optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional().default("MEDIUM"),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().default("MEDIUM"),
   assigneeId: z.string().optional(),
   dueDate: z.string().datetime().optional().nullable(),
 });
@@ -25,7 +25,7 @@ export const addDependencySchema = z.object({
 export const updateIssueSchema = z.object({
   title: z.string().min(1, "Title is required").max(100).optional(),
   description: z.string().optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
   assigneeId: z.string().optional().nullable(),
   dueDate: z.string().datetime().optional().nullable(),
 });

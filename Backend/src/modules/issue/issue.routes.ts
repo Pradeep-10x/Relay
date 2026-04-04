@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createIssue,
+  selfAssignIssue,
   updateIssueState,
   updateIssue,
 
@@ -54,6 +55,32 @@ router.post(
   "/projects/:projectId/issues",
   authMiddleware,
   createIssue
+);
+
+/**
+ * @swagger
+ * /issues/{issueId}/self-assign:
+ *   patch:
+ *     summary: Self-assign an unassigned issue
+ *     tags: [Issues]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: issueId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Issue self-assigned successfully
+ *       409:
+ *         description: Issue already assigned
+ */
+router.patch(
+  "/issues/:issueId/self-assign",
+  authMiddleware,
+  selfAssignIssue
 );
 
 /**

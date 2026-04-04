@@ -157,7 +157,7 @@ export const deleteWorkspaceService = async (workspaceId: string, userId: string
    
      return prisma.$transaction(async(tx)=> {
 
-       const membership = await prisma.workspaceMember.findUnique({
+       const membership = await tx.workspaceMember.findUnique({
         where: {
             userId_workspaceId: {
                 userId,

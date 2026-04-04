@@ -1,4 +1,4 @@
-import { success } from "zod";
+
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ProjectRole } from "@prisma/client";
@@ -58,17 +58,17 @@ export const createProjectService= async (userId: string, workspaceId: string, n
             order: 1,
           },
           {
-            name: "In_Progress",
+            name: "IN_PROGRESS",
             projectId: project.id,
             order: 2,
           },
           {
-            name: "Review",
+            name: "REVIEW",
             projectId: project.id,
             order: 3,
           },
           {
-            name: "Done",
+            name: "DONE",
             projectId: project.id,
             order: 4,
           },
@@ -86,25 +86,25 @@ export const createProjectService= async (userId: string, workspaceId: string, n
           {
             projectId: project.id,
             fromStateId: stateMap.OPEN as string,
-            toStateId: stateMap.In_Progress as string,
+            toStateId: stateMap.IN_PROGRESS as string,
             allowedRoles : "MEMBER"
           },
           {
             projectId: project.id,
-            fromStateId: stateMap.In_Progress as string,
-            toStateId: stateMap.Review as string,
+            fromStateId: stateMap.IN_PROGRESS as string,
+            toStateId: stateMap.REVIEW as string,
             allowedRoles : "MEMBER"
           },
           {
             projectId: project.id,
-            fromStateId: stateMap.Review as string,
-            toStateId: stateMap.Done as string,
+            fromStateId: stateMap.REVIEW as string,
+            toStateId: stateMap.DONE as string,
             allowedRoles : "ADMIN"
           },
           {
             projectId: project.id,
-            fromStateId: stateMap.Done as string,
-            toStateId: stateMap.In_Progress as string,
+            fromStateId: stateMap.DONE as string,
+            toStateId: stateMap.IN_PROGRESS as string,
             allowedRoles : "ADMIN"
           },
         ],
@@ -143,7 +143,7 @@ export const getWorkspaceProjectsService = async (userId: string, workspaceId: s
       });
 };
 
-export const deleteProjectService = async (userId: string, projectId: string) => {
+export const deleteProjectService = async (projectId: string, userId: string) => {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
   });
