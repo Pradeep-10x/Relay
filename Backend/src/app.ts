@@ -34,7 +34,7 @@ app.use(httpLogger);
 //health check 
 app.get('/health', async (req, res) => {
     console.log('Health check failed');
-    res.status(200).json({ ok: true, db: true });
+    res.status(200).json({ ok: true});
   }
 );
 
