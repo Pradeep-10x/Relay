@@ -46,7 +46,7 @@ jobs:
             pm2 list
 
             echo "Restarting app..."
-            pm2 reload my-app || pm2 start index.js --name my-app
+            pm2 reload my-app || pm2 start dist/server.js --name my-app
 
             echo "PM2 status after:"
             pm2 list
