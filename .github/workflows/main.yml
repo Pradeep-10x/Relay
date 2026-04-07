@@ -34,7 +34,7 @@ jobs:
             git pull origin master
 
             echo "Installing deps..."
-            npm ci
+        
             npm install
             echo "Running prisma..."
             npx prisma generate || true
