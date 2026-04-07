@@ -35,7 +35,7 @@ jobs:
 
             echo "Installing deps..."
             npm ci
-
+            npm install
             echo "Running prisma..."
             npx prisma generate || true
             npx prisma migrate deploy || true
