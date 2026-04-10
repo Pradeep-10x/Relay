@@ -30,25 +30,3 @@ export const rateLimiter = async (
   }
 
 };
-
-const authRateLimiterConfig = new RateLimiterRedis({
-  storeClient: redis,
-  keyPrefix: "auth-limit",
-  points: 5, // 5 requests
-  duration: 60 * 15 // per 15 minutes
-});
-
-export const authLimiter = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    await authRateLimiterConfig.consume(req.ip as string);
-    next();
-  } catch {
-    res.status(429).json({
-      message: "Too many authentication attempts, please try again later."
-    });
-  }
-};
