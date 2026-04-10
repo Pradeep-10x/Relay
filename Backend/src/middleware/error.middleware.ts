@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { Prisma } from "@prisma/client";
 import { ApiError } from "../utils/ApiError.js";
 import { ZodError } from "zod";
 import { logger } from "../lib/logger.js";
@@ -27,6 +28,21 @@ export const globalErrorHandler = (
       success: false,
       message: err.message,
       errors: err.errors,
+    });
+  }
+
+  // Prisma errors
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: "Unique constraint failed. A record with this value already exists.",
+        errors: [{ field: err.meta?.target || "database", message: "Duplicate value" }],
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      message: "Database operation failed",
     });
   }
 

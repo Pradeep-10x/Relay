@@ -6,14 +6,14 @@ import { asyncHandler
 import { workspaceSchema , addMemberSchema , getMembersSchema, removeMemberSchema } from "./workspace.schema.js";
 
 export const createWorkspace = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     const parsed = workspaceSchema.parse(req.body);
     const workspace = await createWorkspaceService(user.id, parsed.name)
     res.status(201).json({ message: "Workspace created successfully", workspace });
 });
 
 export const getWorkspaces = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     if (!user) {
         throw new ApiError(401, "Unauthorized");
     }
@@ -22,7 +22,7 @@ export const getWorkspaces = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const addMemberToWorkspace = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     const { workspaceId } = req.params;
     const parsed = addMemberSchema.parse(req.body);
     const workspace = await addMembersToWorkspaceService(workspaceId as string, user.id, parsed.role, parsed.email);
@@ -31,7 +31,7 @@ export const addMemberToWorkspace = asyncHandler(async (req: Request, res: Respo
 );
 
 export const getWorkspaceMembers = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     const { workspaceId } = req.params;
     const parsed = getMembersSchema.parse({ workspaceId });
     const members = await getWorkspaceMembersService(parsed.workspaceId, user.id);
@@ -39,7 +39,7 @@ export const getWorkspaceMembers = asyncHandler(async (req: Request, res: Respon
 });
 
 export const deleteWorkspace = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     const { workspaceId } = req.params;
     const parsed = getMembersSchema.parse({ workspaceId });
     const deleteWorkspace = await deleteWorkspaceService(parsed.workspaceId, user.id);
@@ -47,7 +47,7 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const removeMemberFromWorkspace = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     const { workspaceId } = req.params;
     const { memberId } = removeMemberSchema.parse(req.body);
     const parsed = getMembersSchema.parse({ workspaceId });
@@ -57,14 +57,14 @@ export const removeMemberFromWorkspace = asyncHandler(async (req: Request, res: 
 );
 
 export const inviteToWorkspace = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     const { workspaceId } = req.params;
     const invite = await inviteToWorkspaceService(workspaceId as string, user.id);
     res.status(200).json({ message: "Invite Code Generated for 24hrs Validity", invite });
 });
 
 export const joinWorkspace = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const user = req.user!;
     const { inviteCode } = req.params;
     const workspace = await joinWorkspaceService(inviteCode as string, user.id);
     res.status(200).json({ message: "Joined workspace successfully", workspace });

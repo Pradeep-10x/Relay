@@ -22,17 +22,15 @@ export const createProjectService= async (userId: string, workspaceId: string, n
         throw new ApiError(403, "Only owners and admins can create projects in workspace");
       }
       const baseKey = generateBaseKey(name);
+      
+      const existingCount = await tx.project.count({
+        where: { key: { startsWith: baseKey } }
+      });
+      
       let key = baseKey;
-      let counter = 1;
-      while(true)
-      {        const existingProject = await tx.project.findUnique({
-          where: { key },
-        });
-        if (!existingProject) {
-          break;
-        }
-        key = `${baseKey}${counter}`;
-        counter++;
+      if (existingCount > 0) {
+        const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+        key = `${baseKey}-${randomSuffix}`;
       }
       const project = await tx.project.create({
         data: {
@@ -194,80 +192,70 @@ export const deleteProjectService = async (projectId: string, userId: string) =>
 export const addMemberToProjectService = async (userId: string, projectId: string, memberEmail: string, role: ProjectRole) => {
 
     return prisma.$transaction(async (tx) => {
-     const project = await tx.project.findUnique({
-        where: { id: projectId },
-      });
+      const [project, projectMembership, targetUser] = await Promise.all([
+        tx.project.findUnique({ where: { id: projectId } }),
+        tx.projectMember.findUnique({
+          where: { userId_projectId: { userId, projectId } },
+        }),
+        tx.user.findUnique({ where: { email: memberEmail } })
+      ]);
 
+       if (!targetUser) {
+        throw new ApiError(404, "User not found");
+       }
       if (!project) {
         throw new ApiError(404, "Project not found");
       }
-
-      const projectMembership = await tx.projectMember.findUnique({
-        where: {
-          userId_projectId: {
-            userId,
-            projectId,
-          },
-        },
-      });
-
       if (!projectMembership) {
         throw new ApiError(403, "You are not a member of this project");
       }
       if (projectMembership.role === ProjectRole.MEMBER) {
         throw new ApiError(403, "Only project owners and admins can add members to a project");
       }
-       
       if (projectMembership.role === ProjectRole.ADMIN && role !== ProjectRole.MEMBER) {
         throw new ApiError(403, "Admin can only add members with MEMBER role");
       }
-       if(role === ProjectRole.OWNER) {
+      if(role === ProjectRole.OWNER) {
         throw new ApiError(403, "You cannot assign OWNER role to a member");
-       }
-
-       const targetUser = await tx.user.findUnique({
-        where: { email: memberEmail },
-       });
-
-       if (!targetUser) {
+      }
+      if (!targetUser) {
         throw new ApiError(404, "User not found");
-       }
-       const targetUserMembership = await tx.workspaceMember.findUnique({
-        where: {
-          userId_workspaceId: {
-            userId: targetUser.id,
-            workspaceId: project.workspaceId,
-          },
-        },
-       });
+      }
 
-       if (!targetUserMembership) {
-        throw new ApiError(400, "User is not a member of the workspace");
-       }
-       const existingMembership = await tx.projectMember.findUnique({
-        where: {
-          userId_projectId: {
-            userId: targetUser.id,
-            projectId,
+      const [targetUserMembership, existingMembership, existingAdmin] = await Promise.all([
+        tx.workspaceMember.findUnique({
+          where: {
+            userId_workspaceId: {
+              userId: targetUser.id,
+              workspaceId: project.workspaceId,
+            },
           },
-        },
-       });
-
-       if (existingMembership) {
-        throw new ApiError(400, "User is already a member of the project");
-       }
-       if(role === ProjectRole.ADMIN) {
-        const existingAdmin = await tx.projectMember.findFirst({
+        }),
+        tx.projectMember.findUnique({
+          where: {
+            userId_projectId: {
+              userId: targetUser.id,
+              projectId,
+            },
+          },
+        }),
+        role === ProjectRole.ADMIN ? tx.projectMember.findFirst({
           where: {
             projectId,
             role: ProjectRole.ADMIN,
           },
-        });
+        }) : Promise.resolve(null)
+      ]);
 
-        if (existingAdmin) {
-          throw new ApiError(400, "Project already has an admin");
-        }
-       }
+      if (!targetUserMembership) {
+        throw new ApiError(400, "User is not a member of the workspace");
+      }
+      if (existingMembership) {
+        throw new ApiError(400, "User is already a member of the project");
+      }
+      if (existingAdmin) {
+        throw new ApiError(400, "Project already has an admin");
+      }
 
        return tx.projectMember.create({
         data: {

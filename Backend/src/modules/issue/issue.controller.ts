@@ -20,7 +20,7 @@ export const createIssue = async (req: Request, res: Response) => {
 
   const issue = await createIssueService(
     projectId as string,
-    (req as any).user.id,
+    req.user!.id,
     title,
     (priority || "MEDIUM") as IssuePriority, 
     description || undefined,
@@ -38,7 +38,7 @@ export const selfAssignIssue = async (req: Request, res: Response) => {
 
   const result = await selfAssignIssueService(
     issueId as string,
-    (req as any).user.id
+    req.user!.id
   );
 
   res.json(result);
@@ -51,7 +51,7 @@ export const updateIssueState = async (req: Request, res: Response) => {
 
   const issue = await updateIssueStateService(
     issueId as string,
-    (req as any).user.id,
+    req.user!.id,
     targetStateId
   );
 
@@ -65,7 +65,7 @@ export const addDependency = async (req: Request, res: Response) => {
 
   const dependency = await addIssueDependencyService(
     issueId as string,
-    (req as any).user.id,
+    req.user!.id,
     blockerId
   );
 
@@ -77,7 +77,7 @@ export const removeDependency = async (req: Request, res: Response) => {
 
   const result = await removeIssueDependencyService(
     issueId as string,
-    (req as any).user.id,
+    req.user!.id,
     blockerId as string
   );
 
@@ -87,7 +87,7 @@ export const removeDependency = async (req: Request, res: Response) => {
 export const getIssueActivity = async (req: Request, res: Response) => {
   const { issueId } = issueParamsSchema.parse(req.params);
 
-  const activity = await getIssueActivityService(issueId as string, (req as any).user.id);
+  const activity = await getIssueActivityService(issueId as string, req.user!.id);
 
   res.json(activity);
 };
@@ -105,7 +105,7 @@ export const updateIssue = async (req: Request, res: Response) => {
 
    const updatedIssue = await updateIssueService(
     issueId as string,
-    (req as any).user.id,
+    req.user!.id,
     updateData
    );
 
@@ -115,7 +115,7 @@ export const updateIssue = async (req: Request, res: Response) => {
 export const getProjectBoard = async (req: Request, res: Response) => {
   const { projectId } = issueParamsSchema.parse(req.params);
 
-  const board = await getProjectBoardService(projectId as string, (req as any).user.id);
+  const board = await getProjectBoardService(projectId as string, req.user!.id);
 
   res.json(board);
 };
@@ -123,7 +123,7 @@ export const getProjectBoard = async (req: Request, res: Response) => {
 export const getProjectAnalytics = async (req: Request, res: Response) => {
   const { projectId } = issueParamsSchema.parse(req.params);
 
-  const analytics = await getProjectAnalyticsService(projectId as string, (req as any).user.id);
+  const analytics = await getProjectAnalyticsService(projectId as string, req.user!.id);
 
   res.json(analytics);
 }
@@ -131,7 +131,7 @@ export const getProjectAnalytics = async (req: Request, res: Response) => {
 export const getIssueById = async (req: Request, res: Response) => {
   const { issueId } = issueParamsSchema.parse(req.params);
 
-  const issue = await getIssueByIdService(issueId as string, (req as any).user.id);
+  const issue = await getIssueByIdService(issueId as string, req.user!.id);
 
   res.json(issue);
 };

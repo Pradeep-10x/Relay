@@ -13,7 +13,7 @@ import { updateAvatarKeySchema, updateProfileSchema, changePasswordSchema } from
 
 // Requesting upload URL for avatar from frontend
 export const generateAvatarUploadUrl = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.id;
+    const userId = req.user!?.id;
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }
@@ -23,7 +23,7 @@ export const generateAvatarUploadUrl = asyncHandler(async (req: Request, res: Re
 
 // to update key to db after successful upload
 export const updateurl = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.id;
+    const userId = req.user!?.id;
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }
@@ -35,7 +35,7 @@ export const updateurl = asyncHandler(async (req: Request, res: Response) => {
 
 // to fetch current user profile with avatar URL
 export const getCurrentUserProfile = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.id;
+    const userId = req.user!?.id;
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }
@@ -57,7 +57,7 @@ export const getCurrentUserProfile = asyncHandler(async (req: Request, res: Resp
 });
 
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.id;
+    const userId = req.user!?.id;
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }
@@ -67,7 +67,7 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const changePassword = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.id;
+    const userId = req.user!?.id;
     if (!userId) {
         throw new ApiError(401, "Unauthorized");
     }

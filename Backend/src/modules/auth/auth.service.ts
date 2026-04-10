@@ -41,7 +41,7 @@ export const registerUser= async(data: {
   },
     });
     
-    const accessToken = generateAccessToken(user.id);
+    const accessToken = generateAccessToken({ id: user.id, name: user.name, email: user.email });
     const refreshToken = generateRefreshToken(user.id);
 
     await prisma.refreshToken.create({
@@ -77,7 +77,7 @@ export const loginUser = async(data: {
     throw new ApiError(401, "Invalid credentials");
   }
 
-  const accessToken = generateAccessToken(user.id);
+  const accessToken = generateAccessToken({ id: user.id, name: user.name, email: user.email });
   const refreshToken = generateRefreshToken(user.id);
 
   await prisma.refreshToken.create({
@@ -112,7 +112,16 @@ export const refreshTokens = async(oldToken: string) => {
     data: { revoked: true },
   });
 
-  const newAccessToken = generateAccessToken(payload.sub);
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: { id: true, name: true, email: true }
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const newAccessToken = generateAccessToken({ id: user.id, name: user.name, email: user.email });
   const newRefreshToken = generateRefreshToken(payload.sub);
 
   //storing new token

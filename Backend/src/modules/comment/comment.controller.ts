@@ -5,7 +5,7 @@ import { commentParamsSchema, createCommentSchema, editCommentSchema } from "./c
 
 export const createComment = asyncHandler(async (req: Request, res: Response) => {
     const { issueId, content } = createCommentSchema.parse(req.body);
-    const userId = (req as any).user?.id;
+    const userId = req.user!?.id;
     const comment = await createCommentService(issueId, userId!, content);
     res.status(201).json({ success: true, data: comment });
 });
@@ -26,7 +26,7 @@ export const editComment = asyncHandler(async (req: Request, res: Response) => {
 
 export const deleteComment = asyncHandler(async (req: Request, res: Response) => {
     const { commentId } = commentParamsSchema.parse(req.params);
-    const userId = (req as any).user?.id;
+    const userId = req.user!?.id;
     const comment = await deleteCommentService(commentId as string, userId!);
     res.status(200).json({ success: true, data: comment });
 });

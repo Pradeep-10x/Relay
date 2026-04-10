@@ -18,7 +18,7 @@ export const createProject = async (req: Request, res: Response) => {
   const parsed = createProjectSchema.parse(req.body);
 
   const project = await createProjectService(
-    (req as any).user.id,
+    req.user!.id,
     workspaceId as string,
     parsed.name
   );
@@ -33,7 +33,7 @@ export const getWorkspaceProjects = async (
   const { workspaceId } = projectParamsSchema.parse(req.params);
 
   const projects = await getWorkspaceProjectsService(
-    (req as any).user.id,
+    req.user!.id,
     workspaceId as string
   );
 
@@ -43,7 +43,7 @@ export const getWorkspaceProjects = async (
 export const deleteProject = async (req: Request, res: Response) => {
   const { projectId } = projectParamsSchema.parse(req.params);
 
-  await deleteProjectService(projectId as string, (req as any).user.id);
+  await deleteProjectService(projectId as string, req.user!.id);
 
   res.json({ success: true });
 };
@@ -57,7 +57,7 @@ export const addProjectMember = async (
   const parsed = addMemberSchema.parse(req.body);
 
   const member = await addMemberToProjectService(
-    (req as any).user.id,
+    req.user!.id,
     projectId as string,
     
     parsed.email,
@@ -71,7 +71,7 @@ export const getProjectMembers = async (req: Request, res: Response) => {
   const { projectId } = projectParamsSchema.parse(req.params);
 
   const members = await getProjectMembersService(
-    (req as any).user.id,
+    req.user!.id,
     projectId as string
   );
 

@@ -3,14 +3,14 @@ import { getUserNotificationsService, markNotificationAsReadService } from "./no
 import { notificationParamsSchema } from "./notification.schema.js";
 
 export const getUserNotifications = async (req : Request, res : Response) => {
-  const notifications = await getUserNotificationsService((req as any).user.id);
+  const notifications = await getUserNotificationsService(req.user!.id);
   res.json(notifications);
 }
 
 export const markNotificationAsRead = async (req : Request, res : Response) => {
     const { id } = notificationParamsSchema.parse(req.params);
 
-  const notification = await markNotificationAsReadService(id as string, (req as any).user.id);
+  const notification = await markNotificationAsReadService(id as string, req.user!.id);
   res.json(notification);
 }
   
