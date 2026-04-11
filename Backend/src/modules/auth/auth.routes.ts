@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register ,login,refresh, logout ,me } from "./auth.controller.js";
+import { register, login, refresh, logout, me, googleAuth, googleAuthCallback } from "./auth.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 
 
@@ -106,5 +106,29 @@ router.post("/logout/", authMiddleware, logout);
  *         description: Unauthorized
  */
 router.get("/me", authMiddleware, me);
+
+/**
+ * @swagger
+ * /auth/google:
+ *   get:
+ *     summary: Redirects to Google OAuth consent screen
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirects to Google
+ */
+router.get("/google", googleAuth);
+
+/**
+ * @swagger
+ * /auth/google/callback:
+ *   get:
+ *     summary: Google OAuth callback handler
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirects to frontend with access token
+ */
+router.get("/google/callback", googleAuthCallback);
 
 export default router;

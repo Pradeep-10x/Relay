@@ -138,3 +138,101 @@ export const refreshTokens = async(oldToken: string) => {
     refreshToken: newRefreshToken,
   };
 }
+export const googleCallbackService = async (code: string, state?: string) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    throw new ApiError(500, "Google OAuth environment variables are not configured");
+  }
+
+  // 1. Exchange code for tokens
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: "authorization_code",
+    }),
+  });
+
+  if (!tokenResponse.ok) {
+    const errData = await tokenResponse.text();
+    console.error("Google Token Error:", errData);
+    throw new ApiError(400, "Failed to exchange Google OAuth code");
+  }
+
+  const tokenData = await tokenResponse.json();
+
+  // 2. Decode ID token (no extra HTTP call needed)
+  const { default: jwt } = await import("jsonwebtoken");
+  const userData = jwt.decode(tokenData.id_token) as {
+    sub: string;
+    email: string;
+    name: string;
+    picture: string;
+    email_verified: boolean;
+  };
+
+  if (!userData?.email) throw new ApiError(400, "Could not extract email from Google token");
+  if (!userData.email_verified) throw new ApiError(400, "Google email is not verified");
+
+  // 3. Find or create user (by googleId first, then email)
+  let user = await prisma.user.findFirst({
+    where: { OR: [{ googleId: userData.sub }, { email: userData.email }] },
+  });
+
+  if (!user) {
+    const crypto = await import("crypto");
+    const passwordHash = await hashPassword(crypto.randomBytes(32).toString("hex"));
+
+    let baseUsername = (userData.email.split("@")[0] ?? "user").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "user";
+    let username = baseUsername;
+    let counter = 1;
+    while (await prisma.user.findUnique({ where: { username } })) {
+      username = `${baseUsername}${counter++}`;
+    }
+
+    user = await prisma.user.create({
+      data: {
+        googleId: userData.sub,
+        email: userData.email,
+        name: userData.name || baseUsername,
+        username,
+        passwordHash,
+        avatar: userData.picture || null,
+      },
+    });
+  } else {
+    // Patch missing fields on existing user
+    const updates: any = {};
+    if (!user.googleId) updates.googleId = userData.sub;
+    if (!user.avatar && userData.picture) updates.avatar = userData.picture;
+
+    if (Object.keys(updates).length) {
+      user = await prisma.user.update({ where: { id: user.id }, data: updates });
+    }
+  }
+
+  // 4. Generate tokens
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken(user.id);
+
+  // 5. Store hashed refresh token
+  const crypto = await import("crypto");
+  const hashedToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+
+  await prisma.refreshToken.create({
+    data: {
+      token: hashedToken,
+      userId: user.id,
+      expiresAt: addDays(new Date(), 7),
+    },
+  });
+
+  return { accessToken, refreshToken, user };
+};

@@ -81,3 +81,49 @@ export async function logout(req: Request, res: Response) {
 export async function me(req: Request, res: Response) {
   res.json({ user: req.user! });
 }
+
+export async function googleAuth(req: Request, res: Response) {
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+
+  const options = new URLSearchParams({
+    redirect_uri: redirectUri as string,
+    client_id: clientId as string,
+    access_type: "offline",
+    response_type: "code",
+    prompt: "consent",
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+    ].join(" "),
+  });
+
+  res.redirect(`${rootUrl}?${options.toString()}`);
+}
+
+export async function googleAuthCallback(req: Request, res: Response) {
+  try {
+    const code = req.query.code as string;
+    if (!code) {
+      return res.status(400).json({ message: "Authorization code not provided" });
+    }
+
+    const { googleCallbackService } = await import("./auth.service.js");
+    const tokens = await googleCallbackService(code);
+
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    res.redirect(`${clientOrigin}/auth/callback?token=${tokens.accessToken}`);
+  } catch (error: any) {
+    console.error("Google Auth Error:", error);
+    const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    res.redirect(`${clientOrigin}/login?error=GoogleAuthFailed`);
+  }
+}
