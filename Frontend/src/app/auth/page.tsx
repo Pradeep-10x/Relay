@@ -98,6 +98,11 @@ export default function AuthPage() {
 		}
 	};
 
+	const handleGoogleLogin = () => {
+		const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+		window.location.href = `${baseUrl}/api/v1/auth/google`;
+	};
+
 	const containerVariants = {
 		hidden: { opacity: 0, scale: 0.95, rotate: -2 },
 		show: {
@@ -186,6 +191,7 @@ export default function AuthPage() {
 					<motion.div variants={itemVariants}>
 						<Button 
 							type="button" 
+							onClick={handleGoogleLogin}
 							className="w-full h-11 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-800 transition-all font-medium shadow-sm rounded-lg"
 						>
 							<GoogleIcon className='size-5 me-2' />

@@ -119,11 +119,11 @@ export async function googleAuthCallback(req: Request, res: Response) {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000";
     res.redirect(`${clientOrigin}/auth/callback?token=${tokens.accessToken}`);
   } catch (error: any) {
     console.error("Google Auth Error:", error);
-    const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
-    res.redirect(`${clientOrigin}/login?error=GoogleAuthFailed`);
+    const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000";
+    res.redirect(`${clientOrigin}/auth?error=GoogleAuthFailed`);
   }
 }
