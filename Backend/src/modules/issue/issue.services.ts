@@ -87,23 +87,57 @@ export const selfAssignIssueService = async (
   issueId: string,
   userId: string
 ) => {
+  return prisma.$transaction(async (tx) => {
+    const issue = await tx.issue.findUnique({
+      where: { id: issueId },
+      select: { id: true, projectId: true, assigneeId: true, version: true },
+    });
 
-  const result = await prisma.issue.updateMany({
-    where: {
-      id: issueId,
-      assigneeId: null,
-    },
+    if (!issue) {
+      throw new ApiError(404, "Issue not found");
+    }
+
+    if (issue.assigneeId) {
+      throw new ApiError(409, "Issue already assigned");
+    }
+
+    const membership = await tx.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId,
+          projectId: issue.projectId,
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new ApiError(403, "Not a project member");
+    }
+
+    await tx.issue.update({
+      where: {
+        id: issue.id,
+        version: issue.version,
+      },
       data: {
         assigneeId: userId,
         version: { increment: 1 },
       },
     });
 
-  if (result.count === 0) {
-    throw new ApiError(409, "Issue already assigned");
-  }
-  
-  return { success: true };
+    await tx.issueActivity.create({
+        data: {
+          issueId: issue.id,
+          userId,
+          field: "assignee",
+          fromValue: null,
+          toValue: userId,
+        },
+    });
+
+
+    return { success: true };
+  });
 };
 
 export const updateIssueStateService = async (

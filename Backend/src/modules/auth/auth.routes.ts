@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { register ,login,refresh, logout ,me } from "./auth.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
-import { authLimiter } from "../../middleware/rateLimiter.js";
+
 
 const router = Router();
 
@@ -33,7 +33,7 @@ const router = Router();
  *       400:
  *         description: Validation error
  */
-router.post("/register", authLimiter, register);
+router.post("/register", register);
 
 /**
  * @swagger
@@ -59,7 +59,7 @@ router.post("/register", authLimiter, register);
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", authLimiter, login);
+router.post("/login", login);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ router.post("/refresh", refresh);
  *       200:
  *         description: Logged out successfully
  */
-router.post("/logout/", logout);
+router.post("/logout/", authMiddleware, logout);
 
 /**
  * @swagger

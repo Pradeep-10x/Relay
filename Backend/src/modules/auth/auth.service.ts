@@ -41,7 +41,7 @@ export const registerUser= async(data: {
   },
     });
     
-    const accessToken = generateAccessToken({ id: user.id, name: user.name, email: user.email });
+    const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
 
     await prisma.refreshToken.create({
@@ -77,7 +77,7 @@ export const loginUser = async(data: {
     throw new ApiError(401, "Invalid credentials");
   }
 
-  const accessToken = generateAccessToken({ id: user.id, name: user.name, email: user.email });
+  const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
   await prisma.refreshToken.create({
@@ -99,11 +99,11 @@ export const refreshTokens = async(oldToken: string) => {
   });
 
   if (!stored || stored.revoked) {
-    throw new Error("Invalid refresh token");
+    throw new ApiError(401, "Invalid refresh token");
   }
 
   if (stored.expiresAt < new Date()) {
-    throw new Error("Refresh token expired");
+    throw new ApiError(401, "Refresh token expired");
   }
 
   // revoking old token
@@ -118,10 +118,10 @@ export const refreshTokens = async(oldToken: string) => {
   });
 
   if (!user) {
-    throw new Error("User not found");
+    throw new ApiError(404, "User not found");
   }
 
-  const newAccessToken = generateAccessToken({ id: user.id, name: user.name, email: user.email });
+  const newAccessToken = generateAccessToken(user.id);
   const newRefreshToken = generateRefreshToken(payload.sub);
 
   //storing new token
