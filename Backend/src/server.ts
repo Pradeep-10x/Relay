@@ -4,7 +4,6 @@ import { prisma,connectDB } from "./lib/prisma.js";
 import { logger } from "./config/logger.js";
 import http from "http";
 import { initSocket } from "./lib/socket.js";
-import { initOverdueCron } from "./cron/overdueIssues.cron.js";
 import { redis } from "./lib/redis.js";
 
 async function startServer() {
@@ -14,8 +13,6 @@ async function startServer() {
 
     const server = http.createServer(app);
     initSocket(server);
-    initOverdueCron();
-    
     server.listen(env.PORT, () => {
       logger.info(`Server running on port ${env.PORT}`);
     });
