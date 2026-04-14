@@ -1298,10 +1298,10 @@ html {
 
 /* ── Logo in brand ── */
 .ln-brand-logo {
-  width: 80px;
-  height: 80px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
-  margin-right: -16px;
+  margin-right: 4px;
 }
 
 /* ── Light-mode mockup overrides ── */
