@@ -286,9 +286,9 @@ export default function LandingPage() {
                 preserveAspectRatio="none"
                 aria-hidden="true"
               >
-                <path d="M 280 120 C 340 40, 460 200, 520 120"  stroke="#18181b" strokeWidth="1.5" strokeDasharray="8 6" opacity="0.15" />
-                <path d="M 520 260 C 480 400, 320 340, 280 530" stroke="#18181b" strokeWidth="1.5" strokeDasharray="8 6" opacity="0.15" />
-                <path d="M 280 580 C 340 660, 460 500, 520 620" stroke="#18181b" strokeWidth="1.5" strokeDasharray="8 6" opacity="0.15" />
+                <path d="M 280 120 C 340 40, 460 200, 520 120"  stroke="#000000" strokeWidth="3" strokeDasharray="8 6" opacity="0.4" />
+                <path d="M 520 260 C 480 400, 320 340, 280 530" stroke="#000000" strokeWidth="3" strokeDasharray="8 6" opacity="0.4" />
+                <path d="M 280 580 C 340 660, 460 500, 520 620" stroke="#000000" strokeWidth="3" strokeDasharray="8 6" opacity="0.4" />
               </svg>
 
               <div className="ln-feature-grid">
@@ -342,7 +342,7 @@ export default function LandingPage() {
       <footer className="ln-footer">
         <div className="ln-footer-inner">
           <div className="ln-footer-brand">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#b9cacb] leading-relaxed max-w-sm">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-900 font-bold leading-relaxed max-w-sm">
               © {new Date().getFullYear()} Relay. All rights reserved.
             </p>
           </div>
