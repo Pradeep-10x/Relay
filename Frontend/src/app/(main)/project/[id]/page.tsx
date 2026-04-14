@@ -37,24 +37,24 @@ export default function ProjectMasterPage() {
     if (!projectId) return null;
 
     return (
-        <div className={`h-[calc(100vh-4rem)] flex flex-col bg-black md:px-0 pt-0 ${firaSans.className}`}>
+        <div className={`h-[calc(100vh-4rem)] flex flex-col bg-white dark:bg-black md:px-0 pt-0 ${firaSans.className}`}>
             
             {/* Unified Header */}
-            <header className="shrink-0 px-8 pt-8 pb-4 border-b border-zinc-800/60 bg-black z-10 sticky top-0">
+            <header className="shrink-0 px-8 pt-8 pb-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white dark:bg-black z-10 sticky top-0">
                 <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row sm:items-end justify-between gap-6">
                     {/* Top Row: Title */}
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <span className="text-[11px] font-bold tracking-widest uppercase text-zinc-400">Environment Active</span>
+                            <span className="text-[11px] font-bold tracking-widest uppercase text-zinc-500 dark:text-zinc-400">Environment Active</span>
                         </div>
-                        <h1 className="text-[28px] font-bold tracking-tight text-white leading-none">
+                        <h1 className="text-[28px] font-bold tracking-tight text-zinc-900 dark:text-white leading-none">
                             {currentProject ? currentProject.name : 'Loading...'}
                         </h1>
                     </div>
 
                     {/* Bottom Row: Auth Aesthetics Segmented Control */}
-                    <div className="flex bg-zinc-900/50 p-1 rounded-lg border border-zinc-800/80">
+                    <div className="flex bg-zinc-100/80 dark:bg-zinc-900/50 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800/80">
                         {tabs.map(tab => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -63,13 +63,13 @@ export default function ProjectMasterPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as TabType)}
                                     className={`relative flex items-center gap-2 px-4 py-2 text-[12px] font-semibold tracking-wide transition-colors rounded-md ${
-                                        isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+                                        isActive ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                                     }`}
                                 >
                                     {isActive && (
                                         <motion.div
                                             layoutId="activeTabPill"
-                                            className="absolute inset-0 bg-zinc-800 border border-zinc-700/50 rounded-md"
+                                            className="absolute inset-0 bg-white dark:bg-zinc-800 border border-zinc-300/50 dark:border-zinc-700/50 rounded-md shadow-sm"
                                             initial={false}
                                             transition={{ type: "spring", stiffness: 500, damping: 35 }}
                                         />
@@ -86,7 +86,7 @@ export default function ProjectMasterPage() {
             </header>
 
             {/* View Container */}
-            <main className="flex-1 overflow-hidden relative break-words bg-[#0a0a0c]">
+            <main className="flex-1 overflow-hidden relative break-words bg-zinc-50 dark:bg-[#0a0a0c]">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={activeTab}

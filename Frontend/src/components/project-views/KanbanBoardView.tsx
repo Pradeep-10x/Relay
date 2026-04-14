@@ -116,7 +116,7 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
     if (!mounted || isLoading) {
         return (
             <div className={`flex flex-col flex-1 min-w-0 min-h-0 w-full overflow-hidden animate-pulse ${firaSans.className}`}>
-                <div className="shrink-0 px-6 py-3 border-b border-zinc-800/40 flex items-center gap-4 bg-zinc-950/20">
+                <div className="shrink-0 px-6 py-3 border-b border-zinc-200 dark:border-zinc-800/40 flex items-center gap-4 bg-zinc-50/50 dark:bg-zinc-950/20">
                     <div className="w-24 h-6 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
                     <div className="w-32 h-8 bg-zinc-200 dark:bg-zinc-900 rounded-md" />
                     <div className="w-32 h-8 bg-zinc-100 dark:bg-zinc-900/50 rounded-md" />
@@ -162,7 +162,7 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
         <div className={`flex flex-col flex-1 min-w-0 min-h-0 w-full overflow-hidden ${firaSans.className}`}>
             
             {/* Filter Controls Bar */}
-            <div className="shrink-0 px-6 py-3 border-b border-zinc-800/40 flex items-center gap-4 bg-zinc-950/20">
+            <div className="shrink-0 px-6 py-3 border-b border-zinc-200 dark:border-zinc-800/40 flex items-center gap-4 bg-zinc-50/50 dark:bg-zinc-950/20">
                 <div className="flex items-center gap-2 text-zinc-500">
                     <Filter size={14} />
                     <span className="text-[11px] font-bold tracking-widest uppercase">Filters:</span>
@@ -194,7 +194,7 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
                 {(filterAssignee !== 'ALL' || filterDate !== 'ALL') && (
                     <button 
                         onClick={() => { setFilterAssignee('ALL'); setFilterDate('ALL'); }}
-                        className="text-[11px] text-zinc-500 hover:text-zinc-300 font-bold uppercase tracking-wider transition-colors ml-auto"
+                        className="text-[11px] text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 font-bold uppercase tracking-wider transition-colors ml-auto"
                     >
                         Clear Filters
                     </button>
@@ -216,17 +216,17 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
                                     {/* Column Header */}
                                     <div className="flex items-center justify-between mb-4 px-2">
                                         <div className="flex items-center gap-2.5">
-                                            <h2 className="text-[12px] font-bold tracking-[0.05em] uppercase text-zinc-300">
+                                            <h2 className="text-[12px] font-bold tracking-[0.05em] uppercase text-zinc-700 dark:text-zinc-300">
                                                 {state.name}
                                             </h2>
-                                            <span className="text-[11px] font-medium text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
+                                            <span className="text-[11px] font-medium text-zinc-500 bg-zinc-100 dark:bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-800">
                                                 {issues.length}
                                             </span>
                                         </div>
                                         {index === 0 && (
                                             <button 
                                                 onClick={() => setIsCreateModalOpen(true)}
-                                                className="text-zinc-600 hover:text-zinc-300 transition-colors bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-md p-1"
+                                                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-md p-1"
                                                 title="Create Issue"
                                             >
                                                 <Plus size={14} />
@@ -265,7 +265,7 @@ export function KanbanBoardView({ projectId }: { projectId: string }) {
                                     </Droppable>
                                 </div>
                                 {index < data.states.length - 1 && (
-                                    <div className="w-[1px] h-[calc(100vh-14rem)] bg-zinc-800/50 shrink-0 mr-4 mt-2 rounded-full" />
+                                    <div className="w-[1px] h-[calc(100vh-14rem)] bg-zinc-200 dark:bg-zinc-800/50 shrink-0 mr-4 mt-2 rounded-full" />
                                 )}
                                 </React.Fragment>
                             );
@@ -320,14 +320,14 @@ function CustomSelect({ value, onChange, options }: any) {
         <div className="relative" ref={ref}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center justify-between gap-3 bg-zinc-950 border ${isOpen ? 'border-zinc-700 shadow-[0_0_15px_rgba(255,255,255,0.03)]' : 'border-zinc-800/80'} text-zinc-300 text-[12px] font-semibold tracking-wide rounded-md px-3.5 py-1.5 min-w-[140px] outline-none hover:bg-zinc-900 hover:border-zinc-700 transition-all`}
+                className={`flex items-center justify-between gap-3 bg-white dark:bg-zinc-950 border ${isOpen ? 'border-zinc-300 dark:border-zinc-700 shadow-md' : 'border-zinc-200 dark:border-zinc-800/80'} text-zinc-700 dark:text-zinc-300 text-[12px] font-semibold tracking-wide rounded-md px-3.5 py-1.5 min-w-[140px] outline-none hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all`}
             >
                 <span className="truncate">{selectedOption?.label || 'Select'}</span>
-                <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isOpen ? 'rotate-180 text-zinc-300' : ''}`} />
+                <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-zinc-700 dark:text-zinc-300' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full min-w-[180px] bg-black border border-zinc-800 rounded-lg shadow-2xl shadow-black overflow-hidden z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute top-full left-0 mt-2 w-full min-w-[180px] bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl shadow-zinc-200/50 dark:shadow-black overflow-hidden z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100">
                     {options.map((opt: any) => (
                         <button
                             key={opt.value}
@@ -337,8 +337,8 @@ function CustomSelect({ value, onChange, options }: any) {
                             }}
                             className={`w-full text-left px-3.5 py-2 text-[12px] font-semibold transition-colors flex items-center justify-between group ${
                                 value === opt.value 
-                                ? 'bg-zinc-900 text-white' 
-                                : 'text-zinc-500 hover:bg-zinc-950 hover:text-zinc-200'
+                                ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white' 
+                                : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-950 hover:text-zinc-800 dark:hover:text-zinc-200'
                             }`}
                         >
                             {opt.label}
@@ -384,9 +384,9 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
             {...provided.draggableProps}
             {...provided.dragHandleProps}
             className={`
-                group relative bg-black border rounded-lg flex flex-col p-4
-                transition-all duration-200 hover:bg-zinc-950
-                ${isDragging ? 'shadow-2xl border-zinc-700 rotate-[1.5deg] scale-[1.02] z-50' : 'border-zinc-800/80 shadow-sm'}
+                group relative bg-white dark:bg-black border rounded-lg flex flex-col p-4
+                transition-all duration-200 hover:bg-zinc-50 dark:hover:bg-zinc-950
+                ${isDragging ? 'shadow-2xl border-zinc-300 dark:border-zinc-700 rotate-[1.5deg] scale-[1.02] z-50' : 'border-zinc-200 dark:border-zinc-800/80 shadow-sm'}
             `}
         >
             <div className="flex flex-col gap-3.5">
@@ -402,7 +402,7 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
                 </div>
 
                 {/* Main Content: Title */}
-                <p className="text-[14px] font-medium text-zinc-200 leading-snug group-hover:text-white transition-colors">
+                <p className="text-[14px] font-medium text-zinc-800 dark:text-zinc-200 leading-snug group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
                     {issue.title}
                 </p>
 
@@ -410,7 +410,7 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
                 <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-2">
                         {/* Priority Dot */}
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-full px-2 py-1 flex items-center gap-1.5">
+                        <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full px-2 py-1 flex items-center gap-1.5">
                             <div className={`w-1.5 h-1.5 rounded-full ${priorityColor}`} />
                             <span className="text-[10px] font-medium text-zinc-400 tracking-wide uppercase">
                                 {issue.priority || 'NORMAL'}
@@ -418,7 +418,7 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
                         </div>
                         {/* Due Date Tag */}
                         {dueDateStr && (
-                            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border ${isOverdue ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
+                            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border ${isOverdue ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400'}`}>
                                 <Calendar size={10} />
                                 <span className="text-[10px] font-bold tracking-wide">{dueDateStr}</span>
                             </div>
@@ -431,11 +431,11 @@ function IssueCard({ issue, provided, isDragging, theme, onClick }: any) {
                                 {firstName}
                             </span>
                         )}
-                        <div className="w-6 h-6 rounded-full overflow-hidden border border-zinc-700 bg-zinc-900 shrink-0 shadow-sm">
+                        <div className="w-6 h-6 rounded-full overflow-hidden border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 shrink-0 shadow-sm">
                             {issue.assignee ? (
                                 <img src={avatar} alt={issue.assignee.name} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-[10px] text-zinc-500 font-bold bg-zinc-800">?</div>
+                                <div className="w-full h-full flex items-center justify-center text-[10px] text-zinc-500 font-bold bg-zinc-200 dark:bg-zinc-800">?</div>
                             )}
                         </div>
                     </div>

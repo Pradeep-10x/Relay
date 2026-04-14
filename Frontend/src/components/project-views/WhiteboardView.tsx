@@ -43,7 +43,13 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
         ctx.lineJoin = 'round';
 
         paths.forEach(stroke => {
-            ctx.strokeStyle = stroke.color;
+            if (stroke.color === 'ERASER') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = stroke.color;
+            }
             ctx.lineWidth = stroke.width;
             ctx.beginPath();
             stroke.points.forEach((point: any, index: number) => {
@@ -52,6 +58,8 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
             });
             ctx.stroke();
         });
+        // Reset composite operation
+        ctx.globalCompositeOperation = 'source-over';
     };
 
     // To prevent infinite re-renders during drag, we store current stroke locally
@@ -66,7 +74,7 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
 
         setIsDrawing(true);
         currentStrokeRef.current = {
-            color: tool === 'eraser' ? '#11131b' : color, // matching background color for eraser naive approach
+            color: tool === 'eraser' ? 'ERASER' : color, 
             width: tool === 'eraser' ? 20 : 3,
             points: [{ x, y }]
         };
@@ -90,6 +98,14 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
         const prev = points[points.length - 2];
         
         ctx.strokeStyle = currentStrokeRef.current.color;
+        
+        if (currentStrokeRef.current.color === 'ERASER') {
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.strokeStyle = 'rgba(0,0,0,1)';
+        } else {
+            ctx.globalCompositeOperation = 'source-over';
+        }
+        
         ctx.lineWidth = currentStrokeRef.current.width;
         ctx.beginPath();
         ctx.moveTo(prev.x, prev.y);
@@ -116,11 +132,11 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
     if (isLoading) {
         return (
             <div className="h-full flex flex-col w-full animate-pulse">
-                <div className="shrink-0 h-14 bg-zinc-950/20 border-b border-zinc-800/40 flex items-center justify-between px-6">
+                <div className="shrink-0 h-14 bg-zinc-50/50 dark:bg-zinc-950/20 border-b border-zinc-200 dark:border-zinc-800/40 flex items-center justify-between px-6">
                     <div className="flex items-center gap-4">
                         <div className="w-9 h-9 rounded-md bg-zinc-200 dark:bg-zinc-900" />
                         <div className="w-9 h-9 rounded-md bg-zinc-200 dark:bg-zinc-900" />
-                        <div className="w-px h-6 bg-zinc-800 mx-2" />
+                        <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 mx-2" />
                         <div className="flex gap-2">
                             {[1, 2, 3, 4, 5].map(i => (
                                 <div key={i} className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-900" />
@@ -132,7 +148,7 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
                         <div className="w-24 h-8 rounded-md bg-zinc-200 dark:bg-zinc-900" />
                     </div>
                 </div>
-                <div className="flex-1 bg-zinc-950/10 flex items-center justify-center">
+                <div className="flex-1 bg-zinc-50 dark:bg-zinc-950/10 flex items-center justify-center">
                     <div className="w-32 h-32 rounded-full border-2 border-zinc-200 dark:border-zinc-800/40 opacity-50" />
                 </div>
             </div>
@@ -142,7 +158,7 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
     return (
         <div className="h-full flex flex-col w-full animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* Toolbar */}
-            <div className="shrink-0 h-14 bg-zinc-950/50 border-b border-zinc-800 flex items-center justify-between px-6">
+            <div className="shrink-0 h-14 bg-white dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-6">
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => setTool('pen')}
@@ -152,16 +168,16 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
                     </button>
                     <button 
                         onClick={() => setTool('eraser')}
-                        className={`w-9 h-9 rounded-md flex items-center justify-center transition-colors ${tool === 'eraser' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
+                        className={`w-9 h-9 rounded-md flex items-center justify-center transition-colors ${tool === 'eraser' ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white'}`}
                     >
                         <Eraser size={18} />
                     </button>
-                    <div className="w-px h-6 bg-zinc-800 mx-2" />
-                    {['#ffffff', '#0ea5e9', '#10b981', '#f59e0b', '#f43f5e', '#a855f7'].map(c => (
+                    <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 mx-2" />
+                    {['#171717', '#0ea5e9', '#10b981', '#f59e0b', '#f43f5e', '#a855f7'].map(c => (
                         <button 
                             key={c}
                             onClick={() => { setColor(c); setTool('pen'); }}
-                            className={`w-6 h-6 rounded-full transition-transform ${color === c && tool === 'pen' ? 'scale-125 border-2 border-zinc-900 ring-2 ring-sky-500' : 'hover:scale-110'}`}
+                            className={`w-6 h-6 rounded-full transition-transform ${color === c && tool === 'pen' ? 'scale-125 border-2 border-white dark:border-zinc-900 ring-2 ring-sky-500 shadow-sm' : 'hover:scale-110 shadow-sm border border-zinc-200 dark:border-zinc-800'}`}
                             style={{ backgroundColor: c }}
                         />
                     ))}
@@ -170,7 +186,7 @@ export function WhiteboardView({ projectId }: { projectId: string }) {
                 <div className="flex items-center gap-3">
                      <button 
                         onClick={clearBoard}
-                        className="flex items-center gap-2 px-4 py-2 text-[12px] font-bold tracking-wide text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors uppercase"
+                        className="flex items-center gap-2 px-4 py-2 text-[12px] font-bold tracking-wide text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors uppercase"
                     >
                         <RefreshCw size={14} /> Clear
                     </button>

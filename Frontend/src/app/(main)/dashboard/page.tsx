@@ -142,7 +142,7 @@ export default function DashboardPage() {
             {/* Header */}
             <header className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <div>
-                    <h1 className="text-[26px] font-semibold text-zinc-100 tracking-wide">Dashboard</h1>
+                    <h1 className="text-[26px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-wide">Dashboard</h1>
                     <p className={`text-zinc-500 text-[13px] mt-1 ${ptSerif.className}`}>Here's your activity details</p>
                 </div>
                 
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                 {/* Recent Activity (Left 8 cols) */}
                 <div className="xl:col-span-8 bg-white dark:bg-zinc-950 shadow-sm rounded-md flex flex-col overflow-hidden h-[400px]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 pb-1 gap-4">
-                        <h2 className="text-[18px] font-semibold text-zinc-100">Your Issues</h2>
+                        <h2 className="text-[18px] font-semibold text-zinc-900 dark:text-zinc-100">Your Issues</h2>
                         <div className="flex items-center gap-3">
                             <CustomDropdown 
                                 value={sortFilter} 
@@ -392,7 +392,7 @@ export default function DashboardPage() {
                 {/* Traffic Channel -> Priority Distribution (Right 4 cols) */}
                 <div className="xl:col-span-4 bg-white dark:bg-zinc-950 shadow-sm rounded-md p-7 flex flex-col h-[400px]">
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-[15px] font-semibold text-zinc-100">Workload Priority</h2>
+                        <h2 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">Workload Priority</h2>
                         
                     </div>
 

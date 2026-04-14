@@ -88,12 +88,12 @@ export function ProjectMembersView({ projectId }: { projectId: string }) {
         <div className="px-6 py-6 w-full max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-bold tracking-tight text-white">Member Directory</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Member Directory</h2>
                     <p className="text-[13px] text-zinc-500 mt-1">Manage who has access to this project's boards and issues.</p>
                 </div>
                 <button 
                     onClick={() => setIsAdding(true)}
-                    className="h-9 px-4 rounded-md bg-white text-black text-[12px] font-bold tracking-wide transition-colors hover:bg-zinc-200"
+                    className="h-9 px-4 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-black text-[12px] font-bold tracking-wide transition-colors hover:bg-zinc-800 dark:hover:bg-zinc-200"
                 >
                     Add Member
                 </button>
@@ -114,13 +114,13 @@ export function ProjectMembersView({ projectId }: { projectId: string }) {
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 10 }}
                             onClick={e => e.stopPropagation()}
-                            className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl p-6 relative"
+                            className="w-full max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6 relative"
                         >
-                            <button onClick={() => setIsAdding(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white">
+                            <button onClick={() => setIsAdding(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
                                 <X size={18} />
                             </button>
-                            <h3 className="text-lg font-bold text-white mb-1">Add to Project</h3>
-                            <p className="text-[13px] text-zinc-400 mb-6">User must already be a member of the Workspace.</p>
+                            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-1">Add to Project</h3>
+                            <p className="text-[13px] text-zinc-500 dark:text-zinc-400 mb-6">User must already be a member of the Workspace.</p>
                             
                             {inviteMessage && (
                                 <div className={`p-3 rounded-lg mb-4 text-[13px] font-medium flex items-center gap-2 border ${
@@ -138,7 +138,7 @@ export function ProjectMembersView({ projectId }: { projectId: string }) {
                                         type="email"
                                         value={inviteEmail}
                                         onChange={e => setInviteEmail(e.target.value)}
-                                        className="w-full h-10 px-3 bg-zinc-900 border border-zinc-800 rounded-md text-white text-[13px] outline-none focus:border-zinc-600"
+                                        className="w-full h-10 px-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-white text-[13px] outline-none focus:border-zinc-400 dark:focus:border-zinc-600"
                                         placeholder="colleague@company.com"
                                         required
                                         autoFocus
@@ -149,7 +149,7 @@ export function ProjectMembersView({ projectId }: { projectId: string }) {
                                     <select 
                                         value={inviteRole}
                                         onChange={e => setInviteRole(e.target.value)}
-                                        className="w-full h-10 px-3 bg-zinc-900 border border-zinc-800 rounded-md text-white text-[13px] outline-none focus:border-zinc-600"
+                                        className="w-full h-10 px-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-white text-[13px] outline-none focus:border-zinc-400 dark:focus:border-zinc-600"
                                     >
                                         <option value="MEMBER">Member (Standard)</option>
                                         <option value="ADMIN">Admin (Manage settings)</option>
@@ -158,7 +158,7 @@ export function ProjectMembersView({ projectId }: { projectId: string }) {
                                 <button 
                                     type="submit"
                                     disabled={inviteStatus === 'submitting'}
-                                    className="w-full h-10 mt-2 bg-white text-black font-bold tracking-wide text-[13px] rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                                    className="w-full h-10 mt-2 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold tracking-wide text-[13px] rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50"
                                 >
                                     {inviteStatus === 'submitting' ? 'Adding...' : 'Add Member'}
                                 </button>
@@ -168,27 +168,27 @@ export function ProjectMembersView({ projectId }: { projectId: string }) {
                 )}
             </AnimatePresence>
 
-            <div className="bg-zinc-950 border border-zinc-800/80 rounded-lg overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 rounded-lg overflow-hidden shadow-sm">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b border-zinc-800/80 bg-zinc-900/20">
+                        <tr className="border-b border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/20">
                             <th className="py-4 px-6 text-[10px] font-bold tracking-widest text-zinc-500 uppercase w-1/2">Member</th>
                             <th className="py-4 px-6 text-[10px] font-bold tracking-widest text-zinc-500 uppercase">Role</th>
                             <th className="py-4 px-6 text-[10px] font-bold tracking-widest text-zinc-500 uppercase text-right">Joined</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800/40">
+                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/40">
                         {members.map((member: any) => (
-                            <tr key={member.userId} className="group hover:bg-zinc-900/40 transition-colors">
+                            <tr key={member.userId} className="group hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors">
                                 <td className="py-4 px-6">
                                     <div className="flex items-center gap-4">
                                         <img 
                                             src={member.user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${member.user?.name}`} 
                                             alt={member.user?.name}
-                                            className="w-10 h-10 rounded-full border border-zinc-800 object-cover bg-zinc-900" 
+                                            className="w-10 h-10 rounded-full border border-zinc-200 dark:border-zinc-800 object-cover bg-zinc-100 dark:bg-zinc-900" 
                                         />
                                         <div>
-                                            <p className="text-[13px] font-bold text-zinc-100">{member.user?.name}</p>
+                                            <p className="text-[13px] font-bold text-zinc-900 dark:text-zinc-100">{member.user?.name}</p>
                                             <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-zinc-500 font-medium">
                                                 <Mail size={12} />
                                                 <span>{member.user?.email}</span>
@@ -197,7 +197,7 @@ export function ProjectMembersView({ projectId }: { projectId: string }) {
                                     </div>
                                 </td>
                                 <td className="py-4 px-6">
-                                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900/50">
+                                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900/50">
                                         {roleIcon(member.role)}
                                         <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">{member.role}</span>
                                     </div>

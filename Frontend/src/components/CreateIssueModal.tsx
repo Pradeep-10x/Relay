@@ -75,13 +75,13 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                     exit={{ scale: 0.95, y: -20, opacity: 0 }}
                     transition={{ type: "spring", duration: 0.5, bounce: 0 }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full max-w-lg bg-[#0a0a0c] border border-zinc-800/80 rounded-xl shadow-2xl shadow-black overflow-hidden flex flex-col"
+                    className="w-full max-w-lg bg-white dark:bg-[#0a0a0c] border border-zinc-200 dark:border-zinc-800/80 rounded-xl shadow-2xl shadow-zinc-300/50 dark:shadow-black overflow-hidden flex flex-col"
                 >
-                    <header className="px-6 py-5 border-b border-zinc-800/60 flex items-center justify-between">
-                        <h2 className="text-[17px] font-bold tracking-wide text-zinc-100">Create New Issue</h2>
+                    <header className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-800/60 flex items-center justify-between">
+                        <h2 className="text-[17px] font-bold tracking-wide text-zinc-900 dark:text-zinc-100">Create New Issue</h2>
                         <button 
                             onClick={onClose}
-                            className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                         >
                             <X size={18} />
                         </button>
@@ -103,7 +103,7 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                                 value={title}
                                 onChange={e => setTitle(e.target.value)}
                                 placeholder="E.g., Implement authentication flows..."
-                                className="w-full h-11 px-4 rounded-lg bg-black border border-zinc-800 text-[14px] text-zinc-100 outline-none focus:border-zinc-600 transition-colors shadow-sm placeholder:text-zinc-600"
+                                className="w-full h-11 px-4 rounded-lg bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 text-[14px] text-zinc-900 dark:text-zinc-100 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors shadow-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                 autoFocus
                             />
                         </div>
@@ -114,7 +114,7 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
                                 placeholder="Add context and details..."
-                                className="w-full min-h-[120px] p-4 rounded-lg bg-black border border-zinc-800 text-[14px] text-zinc-100 outline-none focus:border-zinc-600 transition-colors shadow-sm placeholder:text-zinc-600 resize-y"
+                                className="w-full min-h-[120px] p-4 rounded-lg bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 text-[14px] text-zinc-900 dark:text-zinc-100 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors shadow-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-600 resize-y"
                             />
                         </div>
 
@@ -134,7 +134,7 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                                             type="button"
                                             onClick={() => setPriority(p as any)}
                                             className={`h-10 flex items-center justify-center rounded-lg border text-[11px] font-bold tracking-wide transition-all ${
-                                                isActive ? activeClass : 'border-zinc-800 bg-black text-zinc-500 hover:border-zinc-700 hover:text-zinc-400'
+                                                isActive ? activeClass : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-black text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-600 dark:hover:text-zinc-400'
                                             }`}
                                         >
                                             {p}
@@ -148,7 +148,7 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                             <button 
                                 type="button"
                                 onClick={onClose}
-                                className="h-10 px-5 rounded-lg border border-zinc-800 text-zinc-400 text-[13px] font-bold hover:bg-zinc-900 transition-colors"
+                                className="h-10 px-5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 text-[13px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                             >
                                 Cancel
                             </button>

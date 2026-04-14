@@ -66,7 +66,7 @@ export function Sidebar() {
                                     src={link.iconSrc} 
                                     alt={link.name} 
                                     className={`w-[18px] h-[18px] object-contain transition-opacity ${isActive ? "opacity-100" : "opacity-80"}`} 
-                                    style={{ filter: 'brightness(0) invert(1)' }}
+                                    style={{ filter: 'brightness(0)' }}
                                 />
                                 {link.name}
                             </Link>
@@ -103,7 +103,7 @@ export function Sidebar() {
                                         className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-white group"
                                     >
                                         <div className="w-[22px] h-[22px] rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center shrink-0 transition-colors">
-                                            <img src="/projects_icon_142976.svg" alt="Project" className="w-[12px] h-[12px] opacity-100 transition-opacity" style={{ filter: 'brightness(0) invert(1)' }} />
+                                            <img src="/projects_icon_142976.svg" alt="Project" className="w-[12px] h-[12px] opacity-100 transition-opacity" style={{ filter: 'brightness(0)' }} />
                                         </div>
                                         <span className="text-[13px] font-medium truncate text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white">{project.name}</span>
                                     </Link>
@@ -131,7 +131,7 @@ export function Sidebar() {
                             src="/1904675-configuration-edit-gear-options-preferences-setting-settings_122525.svg" 
                             alt="Settings" 
                             className={`w-[18px] h-[18px] object-contain transition-opacity ${pathname.startsWith('/settings') ? "opacity-100" : "opacity-80"}`} 
-                            style={{ filter: 'brightness(0) invert(1)' }}
+                            style={{ filter: 'brightness(0)' }}
                         />
                         Settings
                     </Link>

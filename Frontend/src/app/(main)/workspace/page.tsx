@@ -127,7 +127,7 @@ export default function WorkspacePage() {
                 <div>
                     <h1 className="text-[26px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-wide">Workspace Overview</h1>
                     <p className={`text-zinc-500 text-[13px] mt-1 ${ptSerif.className}`}>
-                        Global control center for <span className="text-zinc-300 font-medium">{data.workspaceName}</span>
+                        Global control center for <span className="text-zinc-700 dark:text-zinc-300 font-medium">{data.workspaceName}</span>
                     </p>
                 </div>
             </header>
@@ -200,15 +200,15 @@ export default function WorkspacePage() {
                         <motion.div 
                             initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
                             onClick={e => e.stopPropagation()}
-                            className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl p-6 relative overflow-hidden"
+                            className="w-full max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6 relative overflow-hidden"
                         >
-                            <button onClick={() => setIsInviteOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors z-10">
+                            <button onClick={() => setIsInviteOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors z-10">
                                 <X size={18} />
                             </button>
                             <div className="relative z-10">
-                                <h3 className="text-xl font-bold tracking-tight text-white mb-1">Invite Team Members</h3>
-                                <p className="text-[13px] text-zinc-400 mb-6 leading-relaxed flex-1">
-                                    Generate a unique invitation link to bring new members into the <span className="text-white font-medium">{data?.workspaceName}</span> workspace. The link will expire in 24 hours.
+                                <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white mb-1">Invite Team Members</h3>
+                                <p className="text-[13px] text-zinc-500 dark:text-zinc-400 mb-6 leading-relaxed flex-1">
+                                    Generate a unique invitation link to bring new members into the <span className="text-zinc-900 dark:text-white font-medium">{data?.workspaceName}</span> workspace. The link will expire in 24 hours.
                                 </p>
                                 
                                 <div className="space-y-4">
@@ -216,12 +216,12 @@ export default function WorkspacePage() {
                                         <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                             <label className="text-[11px] font-bold tracking-widest text-zinc-500 uppercase">Share this link</label>
                                             <div className="flex items-center gap-2">
-                                                <div className="flex-1 h-10 px-3 flex items-center bg-zinc-900 border border-zinc-700/50 rounded-md text-sky-400 font-mono text-[12px] overflow-hidden whitespace-nowrap overflow-ellipsis">
+                                                <div className="flex-1 h-10 px-3 flex items-center bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 rounded-md text-sky-600 dark:text-sky-400 font-mono text-[12px] overflow-hidden whitespace-nowrap overflow-ellipsis">
                                                     {window.location.origin}/join/{inviteToken}
                                                 </div>
                                                 <button 
                                                     onClick={handleCopy}
-                                                    className="w-10 h-10 flex items-center justify-center shrink-0 rounded-md bg-white text-black hover:bg-zinc-200 transition-colors shadow-sm"
+                                                    className="w-10 h-10 flex items-center justify-center shrink-0 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
                                                     title="Copy link"
                                                 >
                                                     {copied ? <Check size={16} /> : <Copy size={16} />}
@@ -233,7 +233,7 @@ export default function WorkspacePage() {
                                         <button 
                                             onClick={handleGenerateInvite}
                                             disabled={isGenerating}
-                                            className="w-full h-10 bg-white text-black font-bold tracking-wide text-[13px] rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className="w-full h-10 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold tracking-wide text-[13px] rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                                         >
                                             {isGenerating ? (
                                                 <>
@@ -256,16 +256,16 @@ export default function WorkspacePage() {
             <section>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-[17px] font-semibold text-zinc-100">Recent Projects</h2>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-900 px-2.5 py-1 rounded-md">
+                        <h2 className="text-[17px] font-semibold text-zinc-900 dark:text-zinc-100">Recent Projects</h2>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 rounded-md">
                             {data.projects.length} Active
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button onClick={() => scroll('left')} className="p-1.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors">
+                        <button onClick={() => scroll('left')} className="p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
                             <ChevronLeft size={16} />
                         </button>
-                        <button onClick={() => scroll('right')} className="p-1.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors">
+                        <button onClick={() => scroll('right')} className="p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
                             <ChevronRight size={16} />
                         </button>
                     </div>
@@ -288,7 +288,7 @@ export default function WorkspacePage() {
                 <div className="xl:col-span-8 bg-white dark:bg-zinc-950 shadow-sm rounded-md overflow-hidden border border-transparent dark:border-zinc-800/40">
                     <div className="flex items-center justify-between p-6 pb-4">
                         <div>
-                            <h2 className="text-[17px] font-semibold text-zinc-100">Team Workload</h2>
+                            <h2 className="text-[17px] font-semibold text-zinc-900 dark:text-zinc-100">Team Workload</h2>
                             <p className="text-[11px] text-zinc-500 mt-0.5">Issues assigned per member</p>
                         </div>
                     </div>
@@ -319,7 +319,7 @@ export default function WorkspacePage() {
 
                 {/* Issue Velocity Chart */}
                 <div className="xl:col-span-4 bg-white dark:bg-zinc-950 shadow-sm rounded-md p-6 border border-transparent dark:border-zinc-800/40 flex flex-col">
-                    <h2 className="text-[15px] font-semibold text-zinc-100 mb-1">Issue Velocity</h2>
+                    <h2 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Issue Velocity</h2>
                     <p className="text-[11px] text-zinc-500 mb-6">Created vs Resolved per project</p>
 
                     <div className="flex-1 flex flex-col gap-4 justify-center">
@@ -382,7 +382,7 @@ function ProjectCard({ project, ptSerif, onClick }: { project: any, ptSerif: str
 
             <div className="mt-4 mb-2 flex items-center justify-between text-[11px]">
                 <span className="text-zinc-500">Progress</span>
-                <span className="font-semibold text-zinc-300">{project.progress}%</span>
+                <span className="font-semibold text-zinc-700 dark:text-zinc-300">{project.progress}%</span>
             </div>
             <div className="w-full h-[6px] bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                 <div className={`h-full ${progressColor} rounded-full transition-all duration-700 ease-out`} style={{ width: `${project.progress}%` }} />
@@ -418,7 +418,7 @@ function MemberRow({ member, maxAssigned, idx }: { member: any; maxAssigned: num
                 </div>
             </td>
             <td className="px-4 py-3.5 text-center">
-                <span className="text-[13px] font-semibold text-zinc-300">{member.assigned}</span>
+                <span className="text-[13px] font-semibold text-zinc-700 dark:text-zinc-300">{member.assigned}</span>
             </td>
             <td className="px-4 py-3.5 text-center">
                 <span className="text-[13px] font-semibold text-emerald-400">{member.resolved}</span>

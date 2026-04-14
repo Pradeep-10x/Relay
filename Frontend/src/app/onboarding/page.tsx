@@ -173,7 +173,7 @@ export default function OnboardingPage() {
                 {/* Header Section */}
                 <motion.div variants={itemVariants} className="text-center space-y-2">
                     <img src="/logo.svg" alt="Relay" width={48} height={48} className="mx-auto mb-4" />
-                    <h1 className="text-3xl font-extrabold tracking-tight text-white">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                         Hello, {user?.name?.split(' ')[0] || 'there'}
                     </h1>
                     <p className="text-muted-foreground text-sm font-medium">
