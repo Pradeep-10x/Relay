@@ -14,6 +14,10 @@ const options: swaggerJsdoc.Options = {
         url: `http://localhost:${env?.PORT || 5000}/api/v1`,
         description: 'Development server',
       },
+      {
+        url: 'https://relay-2s1k.onrender.com/api/v1',
+        description: 'Production server',
+      },
     ],
     components: {
       securitySchemes: {
