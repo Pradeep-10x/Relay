@@ -1,6 +1,7 @@
-import { RateLimiterRedis } from "rate-limiter-flexible";
+import { RateLimiterRedis, RateLimiterRes } from "rate-limiter-flexible";
 import { redis } from "../lib/redis.js";
 import { Request, Response, NextFunction } from "express";
+import { logger } from "../lib/logger.js";
 
 const limiter = new RateLimiterRedis({
   storeClient: redis,
@@ -21,11 +22,17 @@ export const rateLimiter = async (
 
     next();
 
-  } catch {
+  } catch (err) {
+    if (err instanceof RateLimiterRes) {
+      res.setHeader("Retry-After", Math.ceil(err.msBeforeNext / 1000));
 
-    res.status(429).json({
-      message: "Too many requests"
-    });
+      return res.status(429).json({
+        message: "Too many requests"
+      });
+    }
+
+    logger.warn({ err }, "Rate limiter unavailable, allowing request");
+    next();
 
   }
 
