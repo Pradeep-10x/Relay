@@ -20,18 +20,29 @@ export const authMiddleware = async (
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const payload = verifyAccessToken(token) as { sub: string, name?: string, email?: string };
+    const payload = verifyAccessToken(token) as { sub: string };
 
     if (!payload?.sub) {
       return res.status(401).json({ message: "Unauthorized payload" });
     }
      
-    // Stateless Auth: Extract user directly from JWT payload
-    req.user = {
-      id: payload.sub,
-      name: payload.name || "Unknown",
-      email: payload.email || "unknown@domain.com"
-    };
+    //Fetching user from db
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        name: true,
+        id: true,
+        email: true,
+        deletedAt: true,
+      },
+    });
+
+    if (!user || user.deletedAt) {
+      return res.status(401).json({ message: "User not found or deactivated" });
+    }
+
+    
+    req.user! =  user;
 
     next();
   } catch (error) {

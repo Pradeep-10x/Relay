@@ -172,9 +172,11 @@ export const deleteProjectService = async (projectId: string, userId: string) =>
 
   });
   if(!workspaceMembership || (workspaceMembership.role !== "OWNER" && workspaceMembership.role !== "ADMIN")) {
-    if (!projectMembership || projectMembership.role !== "OWNER") {
-      throw new ApiError(403, "Only workspace owners, admins or project owners can delete this project");
+    throw new ApiError(403, "Only workspace owners and admins can delete projects");
     }
+
+  if (projectMembership.role !== "OWNER") {
+    throw new ApiError(403, "Only project owner can delete this project");
   }
 
   await prisma.project.delete({

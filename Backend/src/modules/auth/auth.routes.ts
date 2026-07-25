@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, refresh, logout, me, googleAuth, googleAuthCallback } from "./auth.controller.js";
+import { register,login,refresh, logout,me, googleAuth, googleAuthCallback } from "./auth.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 
 

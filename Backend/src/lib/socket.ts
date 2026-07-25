@@ -1,6 +1,6 @@
 import {Server} from "socket.io";
  let io : Server;
- import { redis } from "./redis.js";
+ import { duplicateRedisClient, redis } from "./redis.js";
  import { logger } from "./logger.js";
  import { prisma } from "./prisma.js";
  import { createAdapter } from "@socket.io/redis-adapter";
@@ -13,15 +13,25 @@ import {Server} from "socket.io";
     },
   });
 
-  // Try Redis adapter — if it fails, socket still works (single-node mode)
-  try {
-    const pubClient = redis.duplicate();
-    const subClient = pubClient.duplicate();
-    io.adapter(createAdapter(pubClient, subClient));
-    logger.info("Socket.IO Redis adapter initialized");
-  } catch (err) {
-    logger.warn("Socket.IO Redis adapter failed, running in single-node mode");
-  }
+  // Try Redis adapter. If Redis is unavailable, sockets still work in single-node mode.
+  void (async () => {
+    const pubClient = duplicateRedisClient(redis, "socket-pub", {
+      lazyConnect: true,
+    });
+    const subClient = duplicateRedisClient(pubClient, "socket-sub", {
+      lazyConnect: true,
+    });
+
+    try {
+      await Promise.all([pubClient.connect(), subClient.connect()]);
+      io.adapter(createAdapter(pubClient, subClient));
+      logger.info("Socket.IO Redis adapter initialized");
+    } catch (err) {
+      logger.warn({ err }, "Socket.IO Redis adapter failed, running in single-node mode");
+      pubClient.disconnect();
+      subClient.disconnect();
+    }
+  })();
   io.on("connection", (socket) => {
     logger.info({ id: socket.id }, "Socket connected");
     
