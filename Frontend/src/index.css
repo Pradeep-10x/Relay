@@ -161,18 +161,18 @@
   }
 
   body {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
     background: var(--surface-0);
     color: var(--text-1);
     line-height: 1.55;
-    --font-display: 'Sora', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
+    --font-display: var(--font-inter), -apple-system, system-ui, sans-serif;
+    --font-body: var(--font-inter), -apple-system, system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.021em;
   }
 
   code, .font-mono, kbd {
@@ -181,13 +181,19 @@
 
   input, textarea, select, button { font-family: inherit; }
 
-  /* Scrollbar — thin, dark, unobtrusive */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  /* Scrollbar — thin, unobtrusive */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--border-3); }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.24); background-clip: padding-box; border: 2px solid transparent; }
 
   ::selection { background: var(--accent-glow); color: var(--text-0); }
+
+  /* Opt-in thin scrollbar used across scroll regions */
+  .custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.15) transparent; }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; border: none; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
 }
 
 /* ═══════════════════════════════════════════════════
