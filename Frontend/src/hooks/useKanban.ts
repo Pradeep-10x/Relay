@@ -86,7 +86,8 @@ export function useKanban(projectId: string | null) {
         try {
             const res = await apiFetch(`/api/v1/issues/${issueId}/state`, {
                 method: 'PATCH',
-                body: JSON.stringify({ stateId: newStateId })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetStateId: newStateId })
             });
 
             if (!res.ok) {
