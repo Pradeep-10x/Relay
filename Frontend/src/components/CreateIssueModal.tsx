@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, AlertCircle } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
-import { Fira_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
-const firaSans = Fira_Sans({
+const firaSans = Inter({
     weight: ['400', '500', '600', '700'],
     subsets: ['latin'],
     display: 'swap',
@@ -67,7 +67,7 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
-                className={`fixed inset-0 bg-black/80 z-[120] backdrop-blur-sm flex items-center justify-center p-4 font-sans ${firaSans.className}`}
+                className={`fixed inset-0 bg-zinc-900/40 z-[120] backdrop-blur-sm flex items-center justify-center p-4 font-sans ${firaSans.className}`}
             >
                 <motion.div
                     initial={{ scale: 0.95, y: 20, opacity: 0 }}
@@ -75,10 +75,10 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                     exit={{ scale: 0.95, y: -20, opacity: 0 }}
                     transition={{ type: "spring", duration: 0.5, bounce: 0 }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full max-w-lg bg-white dark:bg-[#0a0a0c] border border-zinc-200 dark:border-zinc-800/80 rounded-xl shadow-2xl shadow-zinc-300/50 dark:shadow-black overflow-hidden flex flex-col"
+                    className="w-full max-w-lg bg-white border border-zinc-200 rounded-2xl shadow-pop overflow-hidden flex flex-col"
                 >
-                    <header className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-800/60 flex items-center justify-between">
-                        <h2 className="text-[17px] font-bold tracking-wide text-zinc-900 dark:text-zinc-100">Create New Issue</h2>
+                    <header className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
+                        <h2 className="text-[16px] font-semibold tracking-tight text-zinc-900">Create new issue</h2>
                         <button 
                             onClick={onClose}
                             className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
@@ -90,51 +90,51 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                     <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
                         
                         {error && (
-                            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[13px] font-medium flex items-center gap-2">
+                            <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-[13px] font-medium flex items-center gap-2">
                                 <AlertCircle size={16} />
                                 {error}
                             </div>
                         )}
 
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Issue Title</label>
-                            <input 
+                            <label className="text-[12px] font-medium text-zinc-600">Issue title</label>
+                            <input
                                 type="text"
                                 value={title}
                                 onChange={e => setTitle(e.target.value)}
                                 placeholder="E.g., Implement authentication flows..."
-                                className="w-full h-11 px-4 rounded-lg bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 text-[14px] text-zinc-900 dark:text-zinc-100 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors shadow-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+                                className="w-full h-11 px-3.5 rounded-lg bg-zinc-50 border border-zinc-200 text-[14px] text-zinc-900 outline-none focus:border-zinc-400 focus:bg-white transition-colors placeholder:text-zinc-400"
                                 autoFocus
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Description</label>
-                            <textarea 
+                            <label className="text-[12px] font-medium text-zinc-600">Description</label>
+                            <textarea
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
                                 placeholder="Add context and details..."
-                                className="w-full min-h-[120px] p-4 rounded-lg bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 text-[14px] text-zinc-900 dark:text-zinc-100 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors shadow-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-600 resize-y"
+                                className="w-full min-h-[120px] p-3.5 rounded-lg bg-zinc-50 border border-zinc-200 text-[14px] text-zinc-900 outline-none focus:border-zinc-400 focus:bg-white transition-colors placeholder:text-zinc-400 resize-y"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Priority Level</label>
-                            <div className="grid grid-cols-3 gap-3">
+                            <label className="text-[12px] font-medium text-zinc-600">Priority</label>
+                            <div className="grid grid-cols-3 gap-2.5">
                                 {['LOW', 'MEDIUM', 'HIGH'].map((p) => {
                                     const isActive = priority === p;
-                                    const activeClass = 
-                                        p === 'HIGH' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' :
-                                        p === 'MEDIUM' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
-                                        'bg-sky-500/10 border-sky-500/30 text-sky-400';
+                                    const activeClass =
+                                        p === 'HIGH' ? 'bg-rose-50 border-rose-300 text-rose-600' :
+                                        p === 'MEDIUM' ? 'bg-amber-50 border-amber-300 text-amber-700' :
+                                        'bg-emerald-50 border-emerald-300 text-emerald-700';
 
                                     return (
-                                        <button 
-                                            key={p} 
+                                        <button
+                                            key={p}
                                             type="button"
                                             onClick={() => setPriority(p as any)}
-                                            className={`h-10 flex items-center justify-center rounded-lg border text-[11px] font-bold tracking-wide transition-all ${
-                                                isActive ? activeClass : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-black text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-600 dark:hover:text-zinc-400'
+                                            className={`h-10 flex items-center justify-center rounded-lg border text-[12px] font-semibold tracking-wide transition-all ${
+                                                isActive ? activeClass : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'
                                             }`}
                                         >
                                             {p}
@@ -144,21 +144,21 @@ export function CreateIssueModal({ isOpen, onClose, projectId, onSuccess }: Crea
                             </div>
                         </div>
 
-                        <div className="pt-4 flex justify-end gap-3 mt-2">
-                            <button 
+                        <div className="pt-2 flex justify-end gap-3">
+                            <button
                                 type="button"
                                 onClick={onClose}
-                                className="h-10 px-5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 text-[13px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                                className="h-10 px-5 rounded-lg border border-zinc-200 text-zinc-600 text-[13px] font-medium hover:bg-zinc-100 transition-colors"
                             >
                                 Cancel
                             </button>
-                            <button 
+                            <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="h-10 px-6 rounded-lg bg-zinc-100 text-zinc-900 text-[13px] font-bold tracking-wide hover:bg-white transition-colors flex items-center gap-2 disabled:opacity-50"
+                                className="h-10 px-5 rounded-lg bg-zinc-900 text-white text-[13px] font-medium tracking-wide hover:bg-zinc-800 transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm"
                             >
-                                {isSubmitting ? <span className="w-4 h-4 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" /> : <Save size={16} />}
-                                Create Issue
+                                {isSubmitting ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save size={16} />}
+                                Create issue
                             </button>
                         </div>
                     </form>
