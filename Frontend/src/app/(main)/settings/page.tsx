@@ -1,65 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Fira_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { useUser } from '@/hooks/useUser';
 import { apiFetch } from '@/lib/api';
-import { Check, AlertCircle, Save } from 'lucide-react';
+import { Check, AlertCircle, Save, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const firaSans = Fira_Sans({
+const firaSans = Inter({
     weight: ['400', '500', '600', '700', '800'],
     subsets: ['latin'],
     display: 'swap',
 });
-
-// Floating Paths matching the Auth Page style for background texture
-function FloatingPaths({ position }: { position: number }) {
-	const paths = Array.from({ length: 36 }, (_, i) => ({
-		id: i,
-		d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
-			380 - i * 5 * position
-		} -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${
-			152 - i * 5 * position
-		} ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
-			684 - i * 5 * position
-		} ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-		color: `rgba(15,23,42,${0.1 + i * 0.03})`,
-		width: 0.5 + i * 0.03,
-	}));
-
-	return (
-		<div className="pointer-events-none absolute inset-0 opacity-[0.14] overflow-hidden mix-blend-screen scale-[1.3] -translate-y-32">
-			<svg
-				className="h-full w-full text-slate-950 dark:text-white"
-				viewBox="0 0 696 316"
-				fill="none"
-			>
-				<title>Background Paths</title>
-				{paths.map((path) => (
-					<motion.path
-						key={path.id}
-						d={path.d}
-						stroke="currentColor"
-						strokeWidth={path.width}
-						strokeOpacity={0.1 + path.id * 0.03}
-						initial={{ pathLength: 0.3, opacity: 0.6 }}
-						animate={{
-							pathLength: 1,
-							opacity: [0.3, 0.6, 0.3],
-							pathOffset: [0, 1, 0],
-						}}
-						transition={{
-							duration: 20 + Math.random() * 10,
-							repeat: Number.POSITIVE_INFINITY,
-							ease: 'linear',
-						}}
-					/>
-				))}
-			</svg>
-		</div>
-	);
-}
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -80,9 +32,12 @@ export default function SettingsPage() {
     // Profile State
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
-    const [avatar, setAvatar] = useState('');
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-    
+
+    // Avatar upload
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
     // Security State
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -98,9 +53,55 @@ export default function SettingsPage() {
         if (user) {
             setName(user.name || '');
             setUsername(user.username || '');
-            setAvatar(user.avatar || '');
         }
     }, [user]);
+
+    const handleAvatarSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setProfileMessage(null);
+
+        if (!file.type.startsWith('image/')) {
+            setProfileMessage({ type: 'error', text: 'Please choose an image file.' });
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            setProfileMessage({ type: 'error', text: 'Image must be under 5MB.' });
+            return;
+        }
+
+        setIsUploadingAvatar(true);
+        try {
+            // 1. Ask the backend for a presigned upload URL + object key
+            const urlRes = await apiFetch('/api/v1/user/avatar/upload-url', { method: 'POST' });
+            if (!urlRes.ok) throw new Error('Could not start the upload.');
+            const { uploadUrl, key } = await urlRes.json();
+
+            // 2. Upload the file straight to storage (presigned for image/png)
+            const putRes = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'image/png' },
+                body: file,
+            });
+            if (!putRes.ok) throw new Error('Upload failed. Please try again.');
+
+            // 3. Persist the new avatar key
+            const saveRes = await apiFetch('/api/v1/user/avatar', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key }),
+            });
+            if (!saveRes.ok) throw new Error('Could not save the new avatar.');
+
+            setProfileMessage({ type: 'success', text: 'Avatar updated.' });
+            refresh();
+        } catch (err: any) {
+            setProfileMessage({ type: 'error', text: err.message || 'Avatar upload failed.' });
+        } finally {
+            setIsUploadingAvatar(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -111,7 +112,7 @@ export default function SettingsPage() {
             const res = await apiFetch('/api/v1/user/edit-profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, username, avatar })
+                body: JSON.stringify({ name, username })
             });
 
             if (res.ok) {
@@ -164,17 +165,14 @@ export default function SettingsPage() {
 
     return (
         <div className={`relative min-h-full font-sans ${firaSans.className}`}>
-            <FloatingPaths position={1} />
-            <div className="absolute inset-0 bg-transparent dark:bg-black/30 pointer-events-none" />
-
-            <div className="relative z-10 p-8 w-full max-w-3xl mx-auto space-y-12">
-                <motion.header 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    transition={{ duration: 0.5, ease: "easeOut" }}
+            <div className="relative z-10 p-8 w-full max-w-3xl mx-auto space-y-10">
+                <motion.header
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                 >
-                    <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Settings</h1>
-                    <p className="text-sm font-medium text-zinc-500 mt-1">Manage your account settings and preferences.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Settings</h1>
+                    <p className="text-[13px] text-zinc-500 mt-1">Manage your account settings and preferences.</p>
                 </motion.header>
 
                 <motion.div 
@@ -186,13 +184,13 @@ export default function SettingsPage() {
                     {/* Profile Section */}
                     <motion.section variants={itemVariants} className="space-y-6">
                         <div>
-                            <h2 className="text-[12px] font-bold font-mono tracking-[0.16em] uppercase text-zinc-400 dark:text-zinc-500 mb-6 flex items-center gap-4">
-                                General Profile
-                                <span className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800/80" />
+                            <h2 className="text-[13px] font-semibold text-zinc-900 mb-5 flex items-center gap-4">
+                                General profile
+                                <span className="flex-1 h-px bg-zinc-200" />
                             </h2>
                         </div>
 
-                        <form onSubmit={handleUpdateProfile} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-md p-8 sm:p-10 space-y-6">
+                        <form onSubmit={handleUpdateProfile} className="bg-white dark:bg-zinc-950 border border-zinc-200 shadow-card rounded-2xl p-8 sm:p-10 space-y-6">
                             
                             <AnimatePresence>
                                 {profileMessage && (
@@ -236,16 +234,32 @@ export default function SettingsPage() {
                                     />
                                 </div>
 
-                                <div className="space-y-2 md:col-span-2 relative group focus-within:z-10">
-                                    <label className="text-[13px] font-semibold text-zinc-700 dark:text-zinc-300 ml-1">Avatar Image URL</label>
-                                    <input 
-                                        type="url" 
-                                        value={avatar}
-                                        onChange={(e) => setAvatar(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full h-11 px-4 rounded-lg bg-zinc-50 border border-zinc-200 dark:bg-zinc-900/50 dark:border-zinc-800 text-[14px] text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-700 focus:border-zinc-400 dark:focus:border-zinc-700 transition-all shadow-sm"
-                                    />
-                                    <p className="text-[12px] font-medium text-zinc-500 mt-1.5 ml-1">Provide a direct link to an image to update your avatar.</p>
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-[13px] font-semibold text-zinc-700 ml-1">Avatar</label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-full overflow-hidden ring-1 ring-zinc-200 bg-zinc-100 shrink-0">
+                                            {user?.avatar ? (
+                                                <img src={user.avatar} alt={user?.name || 'Avatar'} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-[16px] font-semibold text-zinc-500">
+                                                    {(user?.name || 'U').slice(0, 1).toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarSelected} className="hidden" />
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={isUploadingAvatar}
+                                                className="h-9 px-4 rounded-lg border border-zinc-200 bg-white text-zinc-700 text-[13px] font-medium hover:bg-zinc-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                            >
+                                                {isUploadingAvatar ? <span className="w-3.5 h-3.5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" /> : <Upload size={15} />}
+                                                {isUploadingAvatar ? 'Uploading…' : 'Upload image'}
+                                            </button>
+                                            <p className="text-[12px] text-zinc-500 mt-1.5 ml-0.5">PNG or JPG, up to 5MB.</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -253,7 +267,7 @@ export default function SettingsPage() {
                                 <button 
                                     type="submit"
                                     disabled={isUpdatingProfile}
-                                    className="h-11 px-6 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 text-sm font-semibold tracking-wide transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
+                                    className="h-11 px-6 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 text-sm font-semibold tracking-wide transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isUpdatingProfile ? (
                                         <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -269,13 +283,13 @@ export default function SettingsPage() {
                     {/* Security Section */}
                     <motion.section variants={itemVariants} className="space-y-6">
                         <div>
-                            <h2 className="text-[12px] font-bold font-mono tracking-[0.16em] uppercase text-zinc-400 dark:text-zinc-500 mb-6 flex items-center gap-4">
+                            <h2 className="text-[13px] font-semibold text-zinc-900 mb-5 flex items-center gap-4">
                                 Security
-                                <span className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800/80" />
+                                <span className="flex-1 h-px bg-zinc-200" />
                             </h2>
                         </div>
 
-                        <form onSubmit={handleUpdatePassword} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-md p-8 sm:p-10 space-y-6">
+                        <form onSubmit={handleUpdatePassword} className="bg-white dark:bg-zinc-950 border border-zinc-200 shadow-card rounded-2xl p-8 sm:p-10 space-y-6">
                             
                             <AnimatePresence>
                                 {securityMessage && (
@@ -337,7 +351,7 @@ export default function SettingsPage() {
                                 <button 
                                     type="submit"
                                     disabled={isUpdatingPassword}
-                                    className="h-11 px-6 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all text-sm font-semibold tracking-wide flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
+                                    className="h-11 px-6 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all text-sm font-medium tracking-wide flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isUpdatingPassword ? (
                                         <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
