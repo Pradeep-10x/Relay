@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { ArrowUpRight, ArrowRight, ChevronLeft, ChevronRight, Users, FolderKanban, CheckCircle2, BarChart3, X, Copy, Check } from 'lucide-react';
-import { Fira_Sans, PT_Serif } from 'next/font/google';
+import React, { useRef, useState, useEffect } from 'react';
+import { ArrowUpRight, ArrowRight, ChevronLeft, ChevronRight, Users, FolderKanban, CheckCircle2, BarChart3, X, Copy, Check, MoreHorizontal, Trash2, UserMinus } from 'lucide-react';
+import { Inter, PT_Serif } from 'next/font/google';
 import { useRouter } from 'next/navigation';
 import { useWorkspaceOverview } from '@/hooks/useWorkspaceOverview';
 import { apiFetch } from '@/lib/api';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const firaSans = Fira_Sans({
+const firaSans = Inter({
     weight: ['400', '500', '600', '700'],
     subsets: ['latin'],
     display: 'swap',
@@ -29,6 +30,40 @@ export default function WorkspacePage() {
     const [inviteToken, setInviteToken] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [copied, setCopied] = useState(false);
+
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [confirmDeleteWs, setConfirmDeleteWs] = useState(false);
+    const [memberToRemove, setMemberToRemove] = useState<any>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const onClick = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+        };
+        document.addEventListener('mousedown', onClick);
+        return () => document.removeEventListener('mousedown', onClick);
+    }, []);
+
+    const handleDeleteWorkspace = async () => {
+        const res = await apiFetch(`/api/v1/workspace/${data?.workspaceId}/delete`, { method: 'DELETE' });
+        if (res.ok) {
+            localStorage.removeItem('activeWorkspaceId');
+            window.location.href = '/onboarding';
+        } else {
+            setConfirmDeleteWs(false);
+        }
+    };
+
+    const handleRemoveMember = async () => {
+        if (!memberToRemove) return;
+        const res = await apiFetch(`/api/v1/workspace/${data?.workspaceId}/remove-member`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberId: memberToRemove.userId }),
+        });
+        setMemberToRemove(null);
+        if (res.ok) window.location.reload();
+    };
 
     const handleGenerateInvite = async () => {
         setIsGenerating(true);
@@ -130,7 +165,55 @@ export default function WorkspacePage() {
                         Global control center for <span className="text-zinc-700 dark:text-zinc-300 font-medium">{data.workspaceName}</span>
                     </p>
                 </div>
+
+                <div className="relative" ref={menuRef}>
+                    <button
+                        onClick={() => setMenuOpen(o => !o)}
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-colors ${menuOpen ? 'bg-zinc-100 border-zinc-300 text-zinc-900' : 'bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50'}`}
+                        title="Workspace actions"
+                    >
+                        <MoreHorizontal size={16} />
+                    </button>
+                    <AnimatePresence>
+                        {menuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                                transition={{ duration: 0.12 }}
+                                className="absolute right-0 mt-1.5 w-48 bg-white border border-zinc-200 rounded-xl shadow-pop p-1 z-50"
+                            >
+                                <button
+                                    onClick={() => { setMenuOpen(false); setConfirmDeleteWs(true); }}
+                                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+                                >
+                                    <Trash2 size={15} /> Delete workspace
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </header>
+
+            <ConfirmDialog
+                open={confirmDeleteWs}
+                danger
+                title="Delete this workspace?"
+                description={<>This permanently deletes <span className="font-medium text-zinc-800">{data.workspaceName}</span> along with every project, board, and issue inside it. This cannot be undone.</>}
+                confirmLabel="Delete workspace"
+                confirmPhrase={data.workspaceName}
+                onConfirm={handleDeleteWorkspace}
+                onClose={() => setConfirmDeleteWs(false)}
+            />
+            <ConfirmDialog
+                open={!!memberToRemove}
+                danger
+                title="Remove member?"
+                description={<>Remove <span className="font-medium text-zinc-800">{memberToRemove?.name}</span> from this workspace? They will lose access to its projects.</>}
+                confirmLabel="Remove member"
+                onConfirm={handleRemoveMember}
+                onClose={() => setMemberToRemove(null)}
+            />
 
             {/* ─── Metric Cards ─── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
@@ -307,7 +390,7 @@ export default function WorkspacePage() {
                             </thead>
                             <tbody>
                                 {data.members.map((member, idx) => (
-                                    <MemberRow key={member.userId} member={member} maxAssigned={maxAssigned} idx={idx} />
+                                    <MemberRow key={member.userId} member={member} maxAssigned={maxAssigned} idx={idx} onRemove={() => setMemberToRemove(member)} />
                                 ))}
                                 {data.members.length === 0 && (
                                     <tr><td colSpan={6} className="text-center py-10 text-zinc-500 text-sm">No members found</td></tr>
@@ -393,7 +476,7 @@ function ProjectCard({ project, ptSerif, onClick }: { project: any, ptSerif: str
     );
 }
 
-function MemberRow({ member, maxAssigned, idx }: { member: any; maxAssigned: number; idx: number }) {
+function MemberRow({ member, maxAssigned, idx, onRemove }: { member: any; maxAssigned: number; idx: number; onRemove?: () => void }) {
     const barWidth = maxAssigned > 0 ? (member.assigned / maxAssigned) * 100 : 0;
     const resolvedWidth = member.assigned > 0 ? (member.resolved / member.assigned) * 100 : 0;
 
@@ -427,7 +510,18 @@ function MemberRow({ member, maxAssigned, idx }: { member: any; maxAssigned: num
                 <span className="text-[13px] font-semibold text-zinc-400">{member.remaining}</span>
             </td>
             <td className="px-4 py-3.5 text-right">
-                <span className={`text-[13px] font-bold ${pctColor}`}>{member.pct}%</span>
+                <div className="flex items-center justify-end gap-2">
+                    <span className={`text-[13px] font-bold ${pctColor}`}>{member.pct}%</span>
+                    {onRemove && (
+                        <button
+                            onClick={onRemove}
+                            title="Remove from workspace"
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                        >
+                            <UserMinus size={14} />
+                        </button>
+                    )}
+                </div>
             </td>
         </tr>
     );
