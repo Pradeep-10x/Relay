@@ -8,11 +8,11 @@ import {
     ChevronRight,
     LogOut
 } from 'lucide-react';
-import { Fira_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { useProjects } from '@/hooks/useProjects';
 import { useUser } from '@/hooks/useUser';
 
-const firaSans = Fira_Sans({ 
+const firaSans = Inter({ 
     weight: ['400', '500', '600', '700', '800'],
     subsets: ['latin'],
     display: 'swap',
@@ -30,10 +30,22 @@ export function Sidebar() {
     const { user } = useUser();
     const [isProjectsOpen, setIsProjectsOpen] = useState(true);
 
-    const handleLogout = () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('activeWorkspaceId');
-        window.location.href = '/auth';
+    const handleLogout = async () => {
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const token = localStorage.getItem('accessToken');
+            await fetch(`${baseUrl}/api/v1/auth/logout/`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+        } catch {
+            // Even if the revoke call fails, continue clearing the local session.
+        } finally {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('activeWorkspaceId');
+            window.location.href = '/auth';
+        }
     };
 
     return (
