@@ -131,40 +131,7 @@ export default function AuthPage() {
 					<FloatingPaths position={-1} />
 				</div>
 			</div>
-			<div className="relative flex min-h-screen flex-col justify-center p-4">
-				<div
-					aria-hidden
-					className="absolute inset-0 overflow-hidden flex items-center justify-center p-4 z-0 pointer-events-none"
-				>
-					{/* 3D Workflow Boxes & Wavy Strings */}
-					<svg className="absolute inset-0 w-full h-full pointer-events-none opacity-80 dark:opacity-70" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1000 1000" aria-hidden="true">
-						<defs>
-							<g id="box3d">
-								{/* Top Face */}
-								<polygon points="0,-40 60,-10 0,20 -60,-10" className="fill-zinc-200 dark:fill-zinc-800 stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" strokeLinejoin="round" />
-								{/* Left Face */}
-								<polygon points="-60,-10 0,20 0,80 -60,50" className="fill-zinc-300 dark:fill-zinc-700 stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" strokeLinejoin="round" />
-								{/* Right Face */}
-								<polygon points="0,20 60,-10 60,50 0,80" className="fill-zinc-100 dark:fill-zinc-900 stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" strokeLinejoin="round" />
-							</g>
-						</defs>
-						
-						{/* Wavy Strings */}
-						<path d="M 200 200 C 400 50, 700 200, 850 450" fill="none" className="stroke-zinc-300 dark:stroke-zinc-700" strokeWidth="2" strokeDasharray="8 8" />
-						<path d="M 850 450 C 900 700, 500 800, 300 850" fill="none" className="stroke-zinc-300 dark:stroke-zinc-700" strokeWidth="2" strokeDasharray="8 8" />
-						<path d="M 300 850 C 100 900, 50 400, 200 200" fill="none" className="stroke-zinc-300 dark:stroke-zinc-700" strokeWidth="2" strokeDasharray="8 8" />
-						
-						{/* Background connecting dots for flair */}
-						<circle cx="530" cy="180" r="4" className="fill-white dark:fill-black stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" />
-						<circle cx="750" cy="680" r="4" className="fill-white dark:fill-black stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" />
-						<circle cx="150" cy="550" r="4" className="fill-white dark:fill-black stroke-zinc-400 dark:stroke-zinc-600" strokeWidth="2" />
-						
-						{/* 3D Boxes */}
-						<g transform="translate(200, 200)"><use href="#box3d" /></g>
-						<g transform="translate(850, 450)"><use href="#box3d" /></g>
-						<g transform="translate(300, 850)"><use href="#box3d" /></g>
-					</svg>
-				</div>
+			<div className="relative flex min-h-screen flex-col justify-center p-4 bg-zinc-50">
 				<Button variant="ghost" className="absolute top-7 left-5" asChild>
 					<a href="/">
 						<ChevronLeftIcon className='size-4 me-2' />
@@ -176,7 +143,7 @@ export default function AuthPage() {
 					initial="hidden"
 					animate="show"
 					variants={containerVariants}
-					className="mx-auto w-full max-w-md space-y-6 bg-white dark:bg-zinc-950 p-8 sm:p-10 rounded-md shadow-xl border border-zinc-200 dark:border-zinc-800 relative z-10"
+					className="mx-auto w-full max-w-md space-y-6 bg-white p-8 sm:p-10 rounded-2xl shadow-pop border border-zinc-200 relative z-10"
 				>
 					<motion.div variants={itemVariants} className="flex flex-col space-y-2">
 						<img src="logo.svg" alt="Relay" width={48} height={48} className="mb-2" />

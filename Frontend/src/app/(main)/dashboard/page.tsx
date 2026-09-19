@@ -2,13 +2,13 @@
 
 import React from 'react';
 import { Filter, Download, MoreHorizontal, ArrowUpRight, ArrowDownRight, ArrowRight, FolderKanban, FileText, Clock, CheckCircle2 } from 'lucide-react';
-import { Fira_Sans, PT_Serif } from 'next/font/google';
+import { Inter, PT_Serif } from 'next/font/google';
 import { useRouter } from 'next/navigation';
 import { useWorkspaceAnalytics } from '@/hooks/useWorkspaceAnalytics';
 import { useProjects } from '@/hooks/useProjects';
 import { IssueSlideOver } from '@/components/IssueSlideOver';
 
-const firaSans = Fira_Sans({ 
+const firaSans = Inter({ 
     weight: ['400', '500', '600', '700'],
     subsets: ['latin'],
     display: 'swap',
@@ -530,7 +530,7 @@ function CustomDropdown({ value, onChange, options }: any) {
                 onClick={() => setOpen(!open)}
                 className="flex items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 text-[11.5px] font-medium rounded-lg px-3 py-1.5 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-md transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-700 group cursor-pointer select-none"
             >
-                <div className="flex items-center gap-2"><span className="text-zinc-400 dark:text-zinc-500 font-bold">{selected.icon}</span> <span className="group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">{selected.label}</span></div>
+                <div className="flex items-center gap-2"><span className="group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">{selected.label}</span></div>
                 <svg width="8" height="5" viewBox="0 0 10 6" fill="none" className={`text-zinc-500 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>
                     <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -544,7 +544,6 @@ function CustomDropdown({ value, onChange, options }: any) {
                         onClick={() => { onChange(opt.value); setOpen(false); }}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-left text-[11.5px] font-medium transition-all duration-200 ${value === opt.value ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 translate-x-0' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:translate-x-1'}`}
                     >
-                        <span className={`text-[12px] font-bold ${value === opt.value ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-400 dark:text-zinc-600'}`}>{opt.icon}</span>
                         {opt.label}
                     </button>
                 ))}

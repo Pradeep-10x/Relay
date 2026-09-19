@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Fira_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { useNotifications, NotificationItem } from '@/hooks/useNotifications';
 import { Check, UserPlus, MessageSquare, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const firaSans = Fira_Sans({
+const firaSans = Inter({
     weight: ['400', '500', '600', '700', '800'],
     subsets: ['latin'],
     display: 'swap',
