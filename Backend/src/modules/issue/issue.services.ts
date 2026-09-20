@@ -585,46 +585,48 @@ export const getProjectBoardService = async (projectId: string, userId: string) 
     throw new ApiError(403, "Not a project member");
   }
 
-  const states = await prisma.workflowState.findMany({
-    where: {
-      projectId,
-    },
-    orderBy: {
-      order: "asc",
-    },
-  });
-
-  const issues = await prisma.issue.findMany({
-    where: {
-      projectId,
-      isDeleted: false,
-    },
-    include: {
-      assignee: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
+  const [states, issues] = await Promise.all([
+    prisma.workflowState.findMany({
+      where: {
+        projectId,
+      },
+      orderBy: {
+        order: "asc",
+      },
+    }),
+    prisma.issue.findMany({
+      where: {
+        projectId,
+        isDeleted: false,
+      },
+      include: {
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
         },
       },
-      reporter: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-        },
-      },
-    },
-  });
+    }),
+  ]);
 
   const board : Record<string, any[]> = {};
+  const stateById = new Map(states.map((s) => [s.id, s]));
 
   states.forEach((state) => {
     board[state.name] = [];
   });
 
   issues.forEach((issue) => {
-    const state = states.find((s) => s.id === issue.stateId);
+    const state = stateById.get(issue.stateId);
     if (state) {
       const list = board[state.name];
       if (list) {
@@ -642,11 +644,7 @@ export const getProjectAnalyticsService = async (
   projectId: string,
   userId: string
 ) => {
-   const cacheKey = `analytics:${projectId}`;
-   const cached = await getCache(cacheKey);
-   if (cached) {
-    return cached;
-   }
+  // Authorization must run before serving cached data.
   const membership = await prisma.projectMember.findUnique({
     where: {
       userId_projectId: {
@@ -655,18 +653,18 @@ export const getProjectAnalyticsService = async (
       },
     },
   });
-  
+
   if (!membership) {
     throw new ApiError(403, "Not a project member");
   }
 
-  const totalIssues = await prisma.issue.count({
-    where: {
-      projectId,
-      isDeleted: false,
-    },
-  });
+   const cacheKey = `analytics:${projectId}`;
+   const cached = await getCache(cacheKey);
+   if (cached) {
+    return cached;
+   }
 
+  // doneState is needed to scope the completed-issue count.
   const doneState = await prisma.workflowState.findFirst({
     where: {
       projectId,
@@ -674,32 +672,40 @@ export const getProjectAnalyticsService = async (
     },
   });
 
-  const completedIssues = await prisma.issue.count({
-    where: {
-      projectId,
-      ...(doneState && { stateId: doneState.id }),
-      isDeleted: false,
-    },
-  });
-
-  const issuesPerState = await prisma.issue.groupBy({
-    by: ["stateId"],
-    where: {
-      projectId,
-      isDeleted: false,
-    },
-    _count: true,
-  });
-
-  const tasksPerUser = await prisma.issue.groupBy({
-    by: ["assigneeId"],
-    where: {
-      projectId,
-      isDeleted: false,
-      assigneeId: { not: null },
-    },
-    _count: true,
-  });
+  // The remaining aggregates are independent — run them concurrently.
+  const [totalIssues, completedIssues, issuesPerState, tasksPerUser] =
+    await Promise.all([
+      prisma.issue.count({
+        where: {
+          projectId,
+          isDeleted: false,
+        },
+      }),
+      prisma.issue.count({
+        where: {
+          projectId,
+          ...(doneState && { stateId: doneState.id }),
+          isDeleted: false,
+        },
+      }),
+      prisma.issue.groupBy({
+        by: ["stateId"],
+        where: {
+          projectId,
+          isDeleted: false,
+        },
+        _count: true,
+      }),
+      prisma.issue.groupBy({
+        by: ["assigneeId"],
+        where: {
+          projectId,
+          isDeleted: false,
+          assigneeId: { not: null },
+        },
+        _count: true,
+      }),
+    ]);
 
   const analytics = {
     totalIssues,
