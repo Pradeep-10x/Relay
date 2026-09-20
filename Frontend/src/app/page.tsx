@@ -305,7 +305,7 @@ export default function LandingPage() {
           <section className="ln-section" aria-labelledby="cta-heading">
             <div className="ln-final-cta relative flex flex-col items-center z-10 overflow-hidden mx-auto w-full">
               {/* Decorative Glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-full bg-[radial-gradient(ellipse_at_top,rgba(180, 192, 197, 0.06)_0%,transparent_60%)] pointer-events-none" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-full bg-[radial-gradient(ellipse_at_top,rgba(15, 48, 63, 0.06)_0%,transparent_60%)] pointer-events-none" />
 
               <h2 className="font-headline text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-[1.05] text-zinc-900 relative z-10">
                 Everything your team needs.<br />
