@@ -20,21 +20,25 @@ import { redis } from "./lib/redis.js";
 import { globalErrorHandler } from "./middleware/error.middleware.js";
 const app = express();
 
+const allowedOrigins = (process.env.CORS_ORIGIN || process.env.CLIENT_ORIGIN || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: true,
+  origin: allowedOrigins.length > 0 ? allowedOrigins : true,
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
 app.set("trust proxy", true); 
 app.use(rateLimiter);
 app.use(httpLogger);
 
-//health check 
-app.get('/health', async (req, res) => {
-    console.log('Health check failed');
-    res.status(200).json({ ok: true});
+//health check
+app.get('/health', (req, res) => {
+    res.status(200).json({ ok: true });
   }
 );
 

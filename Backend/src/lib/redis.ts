@@ -10,6 +10,13 @@ const normalizeRedisUrl = (value?: string) => {
     const cliUrlMatch = decoded.match(/(?:rediss?|redis):\/\/\S+/);
     const url = cliUrlMatch?.[0] ?? decoded;
 
+    // Managed Redis (the production target) requires TLS, so keep upgrading
+    // redis:// -> rediss:// by default. Set REDIS_TLS=false for a local /
+    // plaintext instance that doesn't speak TLS.
+    if (process.env.REDIS_TLS === "false") {
+        return url;
+    }
+
     return url.replace(/^redis:\/\//, "rediss://");
 };
 
