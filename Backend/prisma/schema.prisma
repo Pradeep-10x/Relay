@@ -152,6 +152,8 @@ model Issue {
   @@index([assigneeId])
   @@index([stateId])
   @@index([dueDate])
+  // Board/analytics queries almost always filter by project AND isDeleted.
+  @@index([projectId, isDeleted])
 }
 
 model WorkflowState {
