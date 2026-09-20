@@ -8,6 +8,8 @@ import {
 } from "./auth.service.js";
 import { registerSchema, loginSchema } from "./auth.schema.js";
 import { prisma } from "../../lib/prisma.js";
+import { hashToken } from "../../utils/hash.js";
+import { logger } from "../../lib/logger.js";
 
 export async function register(req: Request, res: Response) {
   const parsed = registerSchema.parse(req.body);
@@ -64,7 +66,7 @@ export async function logout(req: Request, res: Response) {
    }
    
     await prisma.refreshToken.updateMany({
-      where: { token: rT },
+      where: { token: hashToken(rT) },
       data: { revoked: true },
     });
      
@@ -122,7 +124,7 @@ export async function googleAuthCallback(req: Request, res: Response) {
     const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000";
     res.redirect(`${clientOrigin}/auth/callback?token=${tokens.accessToken}`);
   } catch (error: any) {
-    console.error("Google Auth Error:", error);
+    logger.error({ err: error }, "Google Auth Error");
     const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000";
     res.redirect(`${clientOrigin}/auth?error=GoogleAuthFailed`);
   }

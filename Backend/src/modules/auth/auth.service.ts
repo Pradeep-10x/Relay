@@ -1,12 +1,13 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { addDays } from "date-fns";
-import { comparePassword, hashPassword } from "../../utils/hash.js";
+import { comparePassword, hashPassword, hashToken } from "../../utils/hash.js";
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
 } from "../../utils/jwt.js";
+import { logger } from "../../lib/logger.js";
 
 export const registerUser= async(data: {
   email: string;
@@ -46,7 +47,7 @@ export const registerUser= async(data: {
 
     await prisma.refreshToken.create({
       data: {
-        token: refreshToken,
+        token: hashToken(refreshToken),
         userId: user.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
@@ -82,7 +83,7 @@ export const loginUser = async(data: {
 
   await prisma.refreshToken.create({
     data: {
-      token: refreshToken,
+      token: hashToken(refreshToken),
       userId: user.id,
       expiresAt: addDays(new Date(), 7),
     },
@@ -94,8 +95,10 @@ export const loginUser = async(data: {
 export const refreshTokens = async(oldToken: string) => {
   const payload = verifyRefreshToken(oldToken) as { sub: string };
 
+  const hashedOld = hashToken(oldToken);
+
   const stored = await prisma.refreshToken.findUnique({
-    where: { token: oldToken },
+    where: { token: hashedOld },
   });
 
   if (!stored || stored.revoked) {
@@ -105,12 +108,6 @@ export const refreshTokens = async(oldToken: string) => {
   if (stored.expiresAt < new Date()) {
     throw new ApiError(401, "Refresh token expired");
   }
-
-  // revoking old token
-  await prisma.refreshToken.update({
-    where: { id: stored.id },
-    data: { revoked: true },
-  });
 
   const user = await prisma.user.findUnique({
     where: { id: payload.sub },
@@ -124,14 +121,20 @@ export const refreshTokens = async(oldToken: string) => {
   const newAccessToken = generateAccessToken(user.id);
   const newRefreshToken = generateRefreshToken(payload.sub);
 
-  //storing new token
-  await prisma.refreshToken.create({
-    data: {
-      token: newRefreshToken,
-      userId: payload.sub,
-      expiresAt: addDays(new Date(), 7),
-    },
-  });
+  // Rotate: revoke the old token and store the new one atomically
+  await prisma.$transaction([
+    prisma.refreshToken.update({
+      where: { id: stored.id },
+      data: { revoked: true },
+    }),
+    prisma.refreshToken.create({
+      data: {
+        token: hashToken(newRefreshToken),
+        userId: payload.sub,
+        expiresAt: addDays(new Date(), 7),
+      },
+    }),
+  ]);
 
   return {
     accessToken: newAccessToken,
@@ -162,7 +165,7 @@ export const googleCallbackService = async (code: string, state?: string) => {
 
   if (!tokenResponse.ok) {
     const errData = await tokenResponse.text();
-    console.error("Google Token Error:", errData);
+    logger.error({ errData }, "Google Token Error");
     throw new ApiError(400, "Failed to exchange Google OAuth code");
   }
 
@@ -222,13 +225,10 @@ export const googleCallbackService = async (code: string, state?: string) => {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
-  // 5. Store hashed refresh token
-  const crypto = await import("crypto");
-  const hashedToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
-
+  // 5. Store hashed refresh token (same scheme as password/login flows)
   await prisma.refreshToken.create({
     data: {
-      token: hashedToken,
+      token: hashToken(refreshToken),
       userId: user.id,
       expiresAt: addDays(new Date(), 7),
     },
