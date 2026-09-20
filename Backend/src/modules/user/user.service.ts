@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { ApiError } from "../../utils/ApiError.js";
 import {hashPassword , comparePassword} from "../../utils/hash.js";
+import { invalidateUserAuthCache } from "../../middleware/auth.middleware.js";
 dotenv.config();
 
 // Generating Avatar URl Upload Service for frontend to upload
@@ -49,31 +50,32 @@ export const updateProfileService = async (userId: string, name?: string, userna
         where: { id: userId },
     });
     if(!user) {
-        throw new Error("User not found");
+        throw new ApiError(404, "User not found");
     }
-    if(username) {
+    if(username && username !== user.username) {
         const taken = await prisma.user.findUnique({
             where: { username },
         });
-        if(taken) {
-            throw new Error("Username already taken");
+        // Only a *different* user holding the username is a conflict.
+        if(taken && taken.id !== userId) {
+            throw new ApiError(409, "Username already taken");
         }
     }
     const data: any = {};
 
-if (name !== undefined) data.name = name;
-if (username !== undefined) data.username = username;
-if (avatar !== undefined) data.avatar = avatar;
+    if (name !== undefined) data.name = name;
+    if (username !== undefined) data.username = username;
+    if (avatar !== undefined) data.avatar = avatar;
 
-    const updated = await prisma.user.update({
+    // Single round-trip: update and return the selected fields directly.
+    const updatedUser = await prisma.user.update({
         where: { id: userId },
-        data
-    });
-
-    const updatedUser = await prisma.user.findUnique({
-        where: { id: userId },
+        data,
         select: { id: true, username: true, email: true, name: true, avatar: true },
     });
+
+    await invalidateUserAuthCache(userId);
+
     return updatedUser;
 }
 
@@ -89,9 +91,10 @@ export const changePasswordService = async (userId: string, oldPassword: string,
         throw new ApiError(401, "Incorrect old password");
     }
     const hash = await hashPassword(newPassword);
-    const updated = await prisma.user.update({
+    await prisma.user.update({
         where: { id: userId },
         data: { passwordHash: hash },
     });
+    await invalidateUserAuthCache(userId);
 }
     
