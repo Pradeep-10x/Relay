@@ -35,25 +35,25 @@ export const initOverdueCron = () => {
             logger.info(`[CRON] Found ${overdueIssues.length} overdue issues. Processing notifications...`);
 
             for (const issue of overdueIssues) {
-                // 1. Notify Assignee
-                if (issue.assigneeId) {
-                    await createNotificationService(issue.assigneeId, "ISSUE_OVERDUE", issue.id);
-                }
-
-                // 2. Notify Project Admins/Owners
+                // Notify assignee + project admins/owners, de-duplicating recipients.
+                const recipientIds = new Set<string>();
+                if (issue.assigneeId) recipientIds.add(issue.assigneeId);
                 for (const member of issue.project.members) {
-                    // Prevent duplicate notification if assignee is also an admin
-                    if (member.userId !== issue.assigneeId) {
-                        await createNotificationService(member.userId, "ISSUE_OVERDUE", issue.id);
-                    }
+                    recipientIds.add(member.userId);
                 }
 
-                // 3. Mark as notified so we don't spam them on the next run
-                await prisma.issue.update({
-                    where: { id: issue.id },
-                    data: { isOverdueNotified: true }
-                });
+                await Promise.all(
+                    [...recipientIds].map((userId) =>
+                        createNotificationService(userId, "ISSUE_OVERDUE", issue.id)
+                    )
+                );
             }
+
+            // Mark everything processed in one statement so the next run skips them.
+            await prisma.issue.updateMany({
+                where: { id: { in: overdueIssues.map((i) => i.id) } },
+                data: { isOverdueNotified: true },
+            });
         } catch (error) {
             logger.error({ err: error }, "[CRON] Scheduled task execution failed");
         }
