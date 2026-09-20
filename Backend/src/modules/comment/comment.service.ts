@@ -49,29 +49,42 @@ export const createCommentService = async (
       },
      });
 
-     //Notification
+     //Notification — only notify mentioned users who are members of this
+     //project, and never self-notify. Sent concurrently.
      const mentioned = extractMentions(content);
      if(mentioned.length > 0){
       const users = await prisma.user.findMany({
         where: {
           username: { in: mentioned },
-        }
+          id: { not: userId },
+          projectsMemberships: {
+            some: { projectId: issue.projectId },
+          },
+        },
+        select: { id: true },
       });
 
-      for (const user of users) {
-        await createNotificationService(user.id, "MENTION", issueId, comment.id);
-      }
+      await Promise.all(
+        users.map((user) =>
+          createNotificationService(user.id, "MENTION", issueId, comment.id)
+        )
+      );
      }
 
      return comment;
     };
     
 export const getIssueCommentsService = async (
-  issueId: string ) => {
-    
+  issueId: string,
+  limit: number = 100 ) => {
+
+  // Bound the result set so a very active issue can't return unbounded rows.
+  const take = Math.min(Math.max(limit, 1), 200);
+
   return await prisma.issueComment.findMany({
     where: { issueId ,deleted : false},
     orderBy: { createdAt: "asc" },
+    take,
     include: {
       user: {
         select: {
@@ -83,7 +96,7 @@ export const getIssueCommentsService = async (
       },
     },
   });
-}; 
+};
 
 export const editCommentService = async (
   commentId: string,

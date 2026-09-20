@@ -130,7 +130,8 @@ export const getWorkspaceProjectsService = async (userId: string, workspaceId: s
         where: { workspaceId },
        include: {
         Issues: {
-          include: { 
+          where: { isDeleted: false },
+          include: {
             state: true,
             assignee: { select: { id: true, name: true, avatar: true } },
             project: { select: { name: true, key: true } }

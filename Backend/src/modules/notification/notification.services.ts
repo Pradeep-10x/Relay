@@ -23,10 +23,13 @@ export const createNotificationService = async (
 };
 
 export const getUserNotificationsService = async (
-  userId : string) => {
+  userId : string,
+  limit : number = 50) => {
+    const take = Math.min(Math.max(limit, 1), 100);
     return prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      take,
       include: {
         issue: {
           select: {
