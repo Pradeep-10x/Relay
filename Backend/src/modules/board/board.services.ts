@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 
@@ -24,23 +25,18 @@ export const getBoardService = async (projectId : string , userId : string) => {
 }
 
 export const saveStrokeService = async (projectId : string , stroke : any) => {
-  const board = await prisma.projectBoard.findUnique({
-    where: { projectId }
-  });
-  if(!board) {
-  return prisma.projectBoard.create({
-    data: {
-      projectId,
-      strokes: [stroke],
-    },
-  });
-}
-
-const strokes = board.strokes as any[];
-strokes.push(stroke);
- return await prisma.projectBoard.update({
-  where: { projectId },
-  data: { strokes },
-});
+  // Atomic append at the database level. Avoids the previous read-modify-write
+  // round-trip (which was O(n) per stroke and lost concurrent updates under
+  // simultaneous drawing). Postgres appends the element to the jsonb array in a
+  // single statement, so concurrent strokes are all preserved.
+  const strokeJson = JSON.stringify([stroke]);
+  await prisma.$executeRaw`
+    INSERT INTO "ProjectBoard" ("id", "projectId", "strokes", "updatedAt")
+    VALUES (${randomUUID()}, ${projectId}, ${strokeJson}::jsonb, now())
+    ON CONFLICT ("projectId")
+    DO UPDATE SET
+      "strokes" = "ProjectBoard"."strokes" || ${strokeJson}::jsonb,
+      "updatedAt" = now()
+  `;
 }
   
